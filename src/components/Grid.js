@@ -13,7 +13,6 @@ import {
   BOX_HEIGHT
 } from '../config/variables';
 import Player from './Player';
-import randomcolor from 'randomcolor';
 
 export default class Grid extends React.Component {
 
