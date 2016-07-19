@@ -3,7 +3,7 @@ var webpack = require('webpack');
 
 module.exports = {
   devtool: 'source-map',
-  entry: ['./src/entry'],
+  entry: ['./src/main'],
   output: {
     path: path.join(__dirname, 'build'),
     publicPath: '/build/',

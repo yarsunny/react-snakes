@@ -4,9 +4,8 @@
   "description": "React snakes is a multiplayer snakes and ladders game written in ReactJs, KonvaJs, Redux etc",
   "scripts": {
     "build": "NODE_ENV=production webpack --config ./webpack.prod.config.js --progress --colors",
-    "start": "node ./config.js"
-  },
-  "main": "./entry.js",
+    "start": "node ./app.js"
+  },  
   "keywords": [
     "react",
     "react-konva",

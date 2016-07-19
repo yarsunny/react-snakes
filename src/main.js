@@ -11,4 +11,4 @@ render(
     <App />
   </Provider>,
   domEntry
-)
+);

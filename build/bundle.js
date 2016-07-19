@@ -23039,11 +23039,7 @@
 	      return _react2.default.createElement(
 	        'div',
 	        null,
-	        _react2.default.createElement(
-	          'h1',
-	          null,
-	          'Snakes and Ladders Mia'
-	        ),
+	        _react2.default.createElement('h1', null),
 	        _react2.default.createElement(_Grid2.default, null)
 	      );
 	    }
