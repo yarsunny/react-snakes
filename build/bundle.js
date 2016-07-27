@@ -65,9 +65,9 @@
 	
 	var _store2 = _interopRequireDefault(_store);
 	
-	var _App = __webpack_require__(200);
+	var _Game = __webpack_require__(203);
 	
-	var _App2 = _interopRequireDefault(_App);
+	var _Game2 = _interopRequireDefault(_Game);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -76,7 +76,7 @@
 	(0, _reactDom.render)(_react2.default.createElement(
 	  _reactRedux.Provider,
 	  { store: _store2.default },
-	  _react2.default.createElement(_App2.default, null)
+	  _react2.default.createElement(_Game2.default, null)
 	), domEntry);
 
 /***/ },
@@ -22965,93 +22965,14 @@
 	
 	var _redux = __webpack_require__(180);
 	
-	var _appReducer = __webpack_require__(199);
+	var _gameReducer = __webpack_require__(199);
 	
 	exports.default = (0, _redux.combineReducers)({
-	  app: _appReducer.app
+	  game: _gameReducer.game
 	});
 
 /***/ },
 /* 199 */
-/***/ function(module, exports) {
-
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.app = app;
-	var initialState = {
-	  isLoading: false,
-	  isLoaded: false
-	};
-	
-	function app() {
-	  var state = arguments.length <= 0 || arguments[0] === undefined ? initialState : arguments[0];
-	  var action = arguments[1];
-	
-	  switch (action.type) {
-	    default:
-	      return state;
-	  }
-	}
-
-/***/ },
-/* 200 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _react = __webpack_require__(2);
-	
-	var _react2 = _interopRequireDefault(_react);
-	
-	var _Grid = __webpack_require__(201);
-	
-	var _Grid2 = _interopRequireDefault(_Grid);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-	
-	var App = function (_React$Component) {
-	  _inherits(App, _React$Component);
-	
-	  function App() {
-	    _classCallCheck(this, App);
-	
-	    return _possibleConstructorReturn(this, Object.getPrototypeOf(App).apply(this, arguments));
-	  }
-	
-	  _createClass(App, [{
-	    key: 'render',
-	    value: function render() {
-	      return _react2.default.createElement(
-	        'div',
-	        null,
-	        _react2.default.createElement('h1', null),
-	        _react2.default.createElement(_Grid2.default, null)
-	      );
-	    }
-	  }]);
-	
-	  return App;
-	}(_react2.default.Component);
-	
-	exports.default = App;
-
-/***/ },
-/* 201 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -23062,19 +22983,324 @@
 	
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 	
+	exports.game = game;
+	
+	var _variables = __webpack_require__(200);
+	
+	var _utils = __webpack_require__(201);
+	
+	var _GameActions = __webpack_require__(202);
+	
+	var initialState = {
+	  grid: {
+	    layout: constructGrid(),
+	    width: _variables.GRID_WIDTH,
+	    height: _variables.GRID_HEIGHT,
+	    box: {
+	      height: _variables.BOX_HEIGHT,
+	      width: _variables.BOX_WIDTH
+	    }
+	  },
+	  players: {
+	    count: 1,
+	    current: {
+	      id: 1,
+	      pos: 1,
+	      color: '#675652'
+	    },
+	    all: [{
+	      id: 1,
+	      pos: 1,
+	      color: '#675652'
+	    }]
+	  }
+	};
+	
+	function game() {
+	  var state = arguments.length <= 0 || arguments[0] === undefined ? initialState : arguments[0];
+	  var action = arguments[1];
+	
+	  debugger;
+	  switch (action.type) {
+	    case _GameActions.ADD_NEW_PLAYER:
+	      return _extends({}, state, {
+	        players: _extends({}, state.players, {
+	          all: state.players.all.push(newPlayer(state.players.count)),
+	          count: state.players.count + 1
+	        })
+	      });
+	
+	    case _GameActions.MOVE_PLAYER:
+	      return _extends({}, state, {
+	        players: _extends({}, state.players, {
+	          all: state.players.all.map(function (p) {
+	            if (p.id === state.players.current.id) {
+	              p.pos = p.pos + action.diceResult;
+	            }
+	            return p;
+	          }),
+	          current: _extends({}, state.players.current, {
+	            pos: state.players.current.pos + action.diceResult
+	          })
+	        })
+	      });
+	
+	    default:
+	      return state;
+	  }
+	}
+	
+	/*
+	 * Private functions
+	 */
+	function constructGrid() {
+	  var grid = {};
+	  var oddRows = [1, 3, 5, 7, 9],
+	      evenRows = [0, 2, 4, 6, 8];
+	
+	  var _loop = function _loop(col) {
+	    //even rows
+	    evenRows.map(function (row) {
+	      grid[col + 10 * row] = {
+	        x: (col - 1) * _variables.BOX_WIDTH + _variables.BOX_WIDTH / 2,
+	        y: _variables.GRID_HEIGHT - (row * _variables.BOX_HEIGHT + _variables.BOX_HEIGHT / 2),
+	        id: col + 10 * row
+	      };
+	    });
+	
+	    //odd rows
+	    oddRows.map(function (row) {
+	      grid[col + 10 * row] = {
+	        x: _variables.GRID_WIDTH - ((col - 1) * _variables.BOX_WIDTH + _variables.BOX_WIDTH / 2),
+	        y: _variables.GRID_HEIGHT - (row * _variables.BOX_HEIGHT + _variables.BOX_HEIGHT / 2),
+	        id: col + 10 * row
+	      };
+	    });
+	  };
+	
+	  for (var col = 1; col <= 10; col++) {
+	    _loop(col);
+	  }
+	  return grid;
+	}
+	
+	function newPlayer(curCount) {
+	  return {
+	    id: curCount + 1,
+	    color: (0, _utils.getRandomColor)(),
+	    pos: 1
+	  };
+	}
+
+/***/ },
+/* 200 */
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var GRID_WIDTH = exports.GRID_WIDTH = 600;
+	var GRID_HEIGHT = exports.GRID_HEIGHT = 600;
+	var BOX_WIDTH = exports.BOX_WIDTH = GRID_WIDTH / 10;
+	var BOX_HEIGHT = exports.BOX_HEIGHT = GRID_HEIGHT / 10;
+
+/***/ },
+/* 201 */
+/***/ function(module, exports) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.getRandomColor = getRandomColor;
+	function getRandomColor() {
+	  return '#' + Math.random().toString(16).substr(-6);
+	};
+
+/***/ },
+/* 202 */
+/***/ function(module, exports) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.addNewPlayer = addNewPlayer;
+	exports.getRollDiceResult = getRollDiceResult;
+	exports.movePlayer = movePlayer;
+	var ADD_NEW_PLAYER = exports.ADD_NEW_PLAYER = 'ADD_NEW_PLAYER';
+	var MOVE_PLAYER = exports.MOVE_PLAYER = 'MOVE_PLAYER';
+	
+	function addNewPlayer() {
+	  return {
+	    type: ADD_NEW_PLAYER
+	  };
+	}
+	
+	function getRollDiceResult() {
+	  var max = 6,
+	      min = 1;
+	  return Math.floor(Math.random() * (max - min + 1)) + min;
+	}
+	
+	function movePlayer(diceResult) {
+	  return {
+	    type: MOVE_PLAYER,
+	    diceResult: diceResult
+	  };
+	}
+
+/***/ },
+/* 203 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
 	var _react = __webpack_require__(2);
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _reactKonva = __webpack_require__(202);
+	var _Grid = __webpack_require__(204);
 	
-	var _variables = __webpack_require__(206);
+	var _Grid2 = _interopRequireDefault(_Grid);
 	
-	var _Player = __webpack_require__(207);
+	var _reactRedux = __webpack_require__(173);
+	
+	var _reactKonva = __webpack_require__(205);
+	
+	var _Player = __webpack_require__(209);
 	
 	var _Player2 = _interopRequireDefault(_Player);
+	
+	var _GameActions = __webpack_require__(202);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var Game = function (_React$Component) {
+	  _inherits(Game, _React$Component);
+	
+	  function Game(props) {
+	    _classCallCheck(this, Game);
+	
+	    return _possibleConstructorReturn(this, Object.getPrototypeOf(Game).call(this, props));
+	  }
+	
+	  _createClass(Game, [{
+	    key: '_rollDice',
+	    value: function _rollDice() {
+	      var _props$game$players$c = this.props.game.players.current;
+	      var currentPos = _props$game$players$c.pos;
+	      var id = _props$game$players$c.id;
+	
+	      this.props.movePlayer((0, _GameActions.getRollDiceResult)());
+	    }
+	  }, {
+	    key: '_getPlayerCoordinates',
+	    value: function _getPlayerCoordinates() {
+	      var _props$game = this.props.game;
+	      var layout = _props$game.grid.layout;
+	      var pos = _props$game.players.current.pos;
+	
+	      return {
+	        x: layout[pos].x,
+	        y: layout[pos].y
+	      };
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      var _props$game2 = this.props.game;
+	      var _props$game2$grid = _props$game2.grid;
+	      var width = _props$game2$grid.width;
+	      var height = _props$game2$grid.height;
+	      var grid = _props$game2.grid;
+	      var _props$game2$players = _props$game2.players;
+	      var all = _props$game2$players.all;
+	      var current = _props$game2$players.current;
+	
+	      var currentPlayerCoordinates = this._getPlayerCoordinates();
+	
+	      return _react2.default.createElement(
+	        'div',
+	        null,
+	        _react2.default.createElement(
+	          'h1',
+	          null,
+	          'this is a game'
+	        ),
+	        _react2.default.createElement(
+	          'div',
+	          null,
+	          _react2.default.createElement(
+	            'button',
+	            { onClick: this._rollDice.bind(this) },
+	            'Roll Dice'
+	          )
+	        ),
+	        _react2.default.createElement(
+	          _reactKonva.Stage,
+	          {
+	            width: width,
+	            height: height },
+	          _react2.default.createElement(_Grid2.default, { grid: grid }),
+	          _react2.default.createElement(_Player2.default, { current: current, coordinates: currentPlayerCoordinates })
+	        )
+	      );
+	    }
+	  }]);
+	
+	  return Game;
+	}(_react2.default.Component);
+	
+	exports.default = Game;
+	
+	
+	function mapStateToProps(state) {
+	  var game = state.game;
+	
+	  return {
+	    game: game
+	  };
+	}
+	
+	exports.default = (0, _reactRedux.connect)(mapStateToProps, {
+	  addNewPlayer: _GameActions.addNewPlayer,
+	  movePlayer: _GameActions.movePlayer
+	})(Game);
+
+/***/ },
+/* 204 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(2);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _reactKonva = __webpack_require__(205);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -23087,148 +23313,41 @@
 	var Grid = function (_React$Component) {
 	  _inherits(Grid, _React$Component);
 	
-	  function Grid(props) {
+	  function Grid() {
 	    _classCallCheck(this, Grid);
 	
-	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Grid).call(this, props));
-	
-	    _this.state = {
-	      player: {
-	        x: _variables.BOX_WIDTH / 2,
-	        y: _variables.GRID_HEIGHT - _variables.BOX_HEIGHT / 2,
-	        pos: 1
-	      },
-	      GRID: _this.constructGrid()
-	    };
-	    return _this;
+	    return _possibleConstructorReturn(this, Object.getPrototypeOf(Grid).apply(this, arguments));
 	  }
 	
 	  _createClass(Grid, [{
-	    key: 'constructGrid',
-	    value: function constructGrid() {
-	
-	      var oddRows = [1, 3, 5, 7, 9];
-	      var evenRows = [0, 2, 4, 6, 8];
-	
-	      var grid = {};
-	      var counter = 5;
-	
-	      var _loop = function _loop(col) {
-	        //even rows
-	        evenRows.map(function (row) {
-	          grid[col + 10 * row] = {
-	            x: (col - 1) * _variables.BOX_WIDTH + _variables.BOX_WIDTH / 2,
-	            y: _variables.GRID_HEIGHT - (row * _variables.BOX_HEIGHT + _variables.BOX_HEIGHT / 2),
-	            id: col + 10 * row
-	          };
-	        });
-	
-	        //odd rows
-	        oddRows.map(function (row) {
-	          grid[col + 10 * row] = {
-	            x: _variables.GRID_WIDTH - ((col - 1) * _variables.BOX_WIDTH + _variables.BOX_WIDTH / 2),
-	            y: _variables.GRID_HEIGHT - (row * _variables.BOX_HEIGHT + _variables.BOX_HEIGHT / 2),
-	            id: col + 10 * row
-	          };
-	        });
-	      };
-	
-	      for (var col = 1; col <= 10; col++) {
-	        _loop(col);
-	      }
-	      return grid;
-	    }
-	  }, {
-	    key: 'movePlayer',
-	    value: function movePlayer() {
-	      var _this2 = this;
-	
-	      var curDice = this.rollDice();
-	      var curPos = this.state.player.pos;
-	      var newPos = curPos + curDice;
-	      var grid = this.state.GRID;
-	
-	      var curY = grid[curPos].y;
-	      var newY = grid[newPos].y;
-	
-	      var edges = [[10, 11], [20, 21], [30, 31], [40, 41], [50, 51], [60, 61], [70, 71], [80, 81], [90, 91]];
-	
-	      if (curY !== newY) {
-	        var bend = edges.filter(function (edge) {
-	          return curPos <= edge[0] && newPos >= edge[1];
-	        })[0];
-	
-	        this.setState(_extends({}, this.state, { player: { x: grid[bend[0]].x, y: grid[bend[0]].y, pos: bend[0] } }));
-	        setTimeout(function () {
-	          _this2.setState(_extends({}, _this2.state, { player: { x: grid[bend[1]].x, y: grid[bend[1]].y, pos: bend[1] } }));
-	          setTimeout(function () {
-	            _this2.setState(_extends({}, _this2.state, { player: { x: grid[newPos].x, y: grid[newPos].y, pos: newPos } }));
-	          }, 300);
-	        }, 300);
-	      } else {
-	        this.setState(_extends({}, this.state, {
-	          player: {
-	            x: grid[newPos].x,
-	            y: grid[newPos].y,
-	            pos: newPos
-	          }
-	        }));
-	      }
-	    }
-	  }, {
-	    key: 'rollDice',
-	    value: function rollDice() {
-	      var max = 6,
-	          min = 1;
-	      return Math.floor(Math.random() * (max - min + 1)) + min;
-	    }
-	  }, {
 	    key: 'render',
 	    value: function render() {
-	      var GRID = this.state.GRID;
+	      var _props$grid = this.props.grid;
+	      var layout = _props$grid.layout;
+	      var _props$grid$box = _props$grid.box;
+	      var boxWidth = _props$grid$box.width;
+	      var boxHeight = _props$grid$box.height;
+	
+	
 	      return _react2.default.createElement(
-	        'div',
+	        _reactKonva.Layer,
 	        null,
-	        _react2.default.createElement(
-	          'div',
-	          null,
-	          _react2.default.createElement(
-	            'button',
-	            { onClick: this.movePlayer.bind(this) },
-	            'genreate a dice'
-	          )
-	        ),
-	        _react2.default.createElement(
-	          _reactKonva.Stage,
-	          {
-	            width: _variables.GRID_WIDTH,
-	            height: _variables.GRID_HEIGHT },
-	          _react2.default.createElement(
-	            _reactKonva.Layer,
-	            null,
-	            Object.keys(GRID).map(function (box) {
-	              return _react2.default.createElement(
-	                _reactKonva.Group,
-	                { key: 'box_' + box },
-	                _react2.default.createElement(_reactKonva.Rect, {
-	                  x: GRID[box].x - _variables.BOX_WIDTH / 2, y: GRID[box].y - _variables.BOX_HEIGHT / 2,
-	                  width: _variables.BOX_WIDTH, height: _variables.BOX_HEIGHT,
-	                  fill: '#ffffff',
-	                  strokeWidth: '1', stroke: '#eee'
-	                }),
-	                _react2.default.createElement(_reactKonva.Text, {
-	                  x: GRID[box].x - _variables.BOX_WIDTH / 2, y: GRID[box].y - _variables.BOX_HEIGHT / 2,
-	                  fill: '#678767', text: box, padding: 4,
-	                  fontSize: 8, fontFamily: 'Calibri' })
-	              );
-	            })
-	          ),
-	          _react2.default.createElement(
-	            _reactKonva.Layer,
-	            null,
-	            _react2.default.createElement(_Player2.default, { x: this.state.player.x, y: this.state.player.y })
-	          )
-	        )
+	        Object.keys(layout).map(function (box) {
+	          return _react2.default.createElement(
+	            _reactKonva.Group,
+	            { key: 'box_' + box },
+	            _react2.default.createElement(_reactKonva.Rect, {
+	              x: layout[box].x - boxWidth / 2, y: layout[box].y - boxHeight / 2,
+	              width: boxWidth, height: boxHeight,
+	              fill: '#ffffff',
+	              strokeWidth: '1', stroke: '#eee'
+	            }),
+	            _react2.default.createElement(_reactKonva.Text, {
+	              x: layout[box].x - boxWidth / 2, y: layout[box].y - boxHeight / 2,
+	              fill: '#678767', text: box, padding: 4,
+	              fontSize: 8, fontFamily: 'Calibri' })
+	          );
+	        })
 	      );
 	    }
 	  }]);
@@ -23239,13 +23358,13 @@
 	exports.default = Grid;
 
 /***/ },
-/* 202 */
+/* 205 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// Adapted from ReactART:
 	// https://github.com/reactjs/react-art
 	
-	var Konva = __webpack_require__(203);
+	var Konva = __webpack_require__(206);
 	var React = __webpack_require__(3);
 	
 	var ReactInstanceMap = __webpack_require__(122);
@@ -23637,7 +23756,7 @@
 
 
 /***/ },
-/* 203 */
+/* 206 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {
@@ -23893,8 +24012,8 @@
 	            // Node. Does not work with strict CommonJS, but
 	            // only CommonJS-like enviroments that support module.exports,
 	            // like Node.
-	            var Canvas = __webpack_require__(204);
-	            var jsdom = __webpack_require__(205).jsdom;
+	            var Canvas = __webpack_require__(207);
+	            var jsdom = __webpack_require__(208).jsdom;
 	
 	            Konva.window = jsdom('<!DOCTYPE html><html><head></head><body></body></html>').defaultView;
 	            Konva.document = Konva.window.document;
@@ -39924,33 +40043,19 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 204 */
-/***/ function(module, exports) {
-
-	/* (ignored) */
-
-/***/ },
-/* 205 */
-/***/ function(module, exports) {
-
-	/* (ignored) */
-
-/***/ },
-/* 206 */
-/***/ function(module, exports) {
-
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	var GRID_WIDTH = exports.GRID_WIDTH = 600;
-	var GRID_HEIGHT = exports.GRID_HEIGHT = 600;
-	var BOX_WIDTH = exports.BOX_WIDTH = GRID_WIDTH / 10;
-	var BOX_HEIGHT = exports.BOX_HEIGHT = GRID_HEIGHT / 10;
-
-/***/ },
 /* 207 */
+/***/ function(module, exports) {
+
+	/* (ignored) */
+
+/***/ },
+/* 208 */
+/***/ function(module, exports) {
+
+	/* (ignored) */
+
+/***/ },
+/* 209 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -39965,11 +40070,11 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _reactKonva = __webpack_require__(202);
+	var _reactKonva = __webpack_require__(205);
 	
-	var _variables = __webpack_require__(206);
+	var _variables = __webpack_require__(200);
 	
-	var _reactMotion = __webpack_require__(208);
+	var _reactMotion = __webpack_require__(210);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -39992,22 +40097,32 @@
 	    key: 'render',
 	    value: function render() {
 	      var _props = this.props;
-	      var x = _props.x;
-	      var y = _props.y;
+	      var _props$current = _props.current;
+	      var pos = _props$current.pos;
+	      var id = _props$current.id;
+	      var color = _props$current.color;
+	      var _props$coordinates = _props.coordinates;
+	      var x = _props$coordinates.x;
+	      var y = _props$coordinates.y;
+	
 	
 	      return _react2.default.createElement(
-	        _reactMotion.Motion,
-	        { style: { x: (0, _reactMotion.spring)(x), y: (0, _reactMotion.spring)(y) } },
-	        function (_ref) {
-	          var x = _ref.x;
-	          var y = _ref.y;
-	          return _react2.default.createElement(_reactKonva.Circle, {
-	            x: x,
-	            y: y,
-	            radius: 10,
-	            fill: 'green'
-	          });
-	        }
+	        _reactKonva.Layer,
+	        null,
+	        _react2.default.createElement(
+	          _reactMotion.Motion,
+	          { style: { x: (0, _reactMotion.spring)(x), y: (0, _reactMotion.spring)(y) } },
+	          function (_ref) {
+	            var x = _ref.x;
+	            var y = _ref.y;
+	            return _react2.default.createElement(_reactKonva.Circle, {
+	              x: x,
+	              y: y,
+	              radius: 10,
+	              fill: color
+	            });
+	          }
+	        )
 	      );
 	    }
 	  }]);
@@ -40018,7 +40133,7 @@
 	exports.default = Player;
 
 /***/ },
-/* 208 */
+/* 210 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -40027,34 +40142,34 @@
 	
 	function _interopRequire(obj) { return obj && obj.__esModule ? obj['default'] : obj; }
 	
-	var _Motion = __webpack_require__(209);
+	var _Motion = __webpack_require__(211);
 	
 	exports.Motion = _interopRequire(_Motion);
 	
-	var _StaggeredMotion = __webpack_require__(216);
+	var _StaggeredMotion = __webpack_require__(218);
 	
 	exports.StaggeredMotion = _interopRequire(_StaggeredMotion);
 	
-	var _TransitionMotion = __webpack_require__(217);
+	var _TransitionMotion = __webpack_require__(219);
 	
 	exports.TransitionMotion = _interopRequire(_TransitionMotion);
 	
-	var _spring = __webpack_require__(219);
+	var _spring = __webpack_require__(221);
 	
 	exports.spring = _interopRequire(_spring);
 	
-	var _presets = __webpack_require__(220);
+	var _presets = __webpack_require__(222);
 	
 	exports.presets = _interopRequire(_presets);
 	
 	// deprecated, dummy warning function
 	
-	var _reorderKeys = __webpack_require__(221);
+	var _reorderKeys = __webpack_require__(223);
 	
 	exports.reorderKeys = _interopRequire(_reorderKeys);
 
 /***/ },
-/* 209 */
+/* 211 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -40065,27 +40180,27 @@
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 	
-	var _mapToZero = __webpack_require__(210);
+	var _mapToZero = __webpack_require__(212);
 	
 	var _mapToZero2 = _interopRequireDefault(_mapToZero);
 	
-	var _stripStyle = __webpack_require__(211);
+	var _stripStyle = __webpack_require__(213);
 	
 	var _stripStyle2 = _interopRequireDefault(_stripStyle);
 	
-	var _stepper3 = __webpack_require__(212);
+	var _stepper3 = __webpack_require__(214);
 	
 	var _stepper4 = _interopRequireDefault(_stepper3);
 	
-	var _performanceNow = __webpack_require__(213);
+	var _performanceNow = __webpack_require__(215);
 	
 	var _performanceNow2 = _interopRequireDefault(_performanceNow);
 	
-	var _raf = __webpack_require__(214);
+	var _raf = __webpack_require__(216);
 	
 	var _raf2 = _interopRequireDefault(_raf);
 	
-	var _shouldStopAnimation = __webpack_require__(215);
+	var _shouldStopAnimation = __webpack_require__(217);
 	
 	var _shouldStopAnimation2 = _interopRequireDefault(_shouldStopAnimation);
 	
@@ -40300,7 +40415,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 210 */
+/* 212 */
 /***/ function(module, exports) {
 
 	
@@ -40324,7 +40439,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 211 */
+/* 213 */
 /***/ function(module, exports) {
 
 	
@@ -40350,7 +40465,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 212 */
+/* 214 */
 /***/ function(module, exports) {
 
 	
@@ -40398,7 +40513,7 @@
 	// array reference around.
 
 /***/ },
-/* 213 */
+/* 215 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {// Generated by CoffeeScript 1.7.1
@@ -40437,10 +40552,10 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
 
 /***/ },
-/* 214 */
+/* 216 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global) {var now = __webpack_require__(213)
+	/* WEBPACK VAR INJECTION */(function(global) {var now = __webpack_require__(215)
 	  , root = typeof window === 'undefined' ? global : window
 	  , vendors = ['moz', 'webkit']
 	  , suffix = 'AnimationFrame'
@@ -40516,7 +40631,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 215 */
+/* 217 */
 /***/ function(module, exports) {
 
 	
@@ -40552,7 +40667,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 216 */
+/* 218 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -40563,27 +40678,27 @@
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 	
-	var _mapToZero = __webpack_require__(210);
+	var _mapToZero = __webpack_require__(212);
 	
 	var _mapToZero2 = _interopRequireDefault(_mapToZero);
 	
-	var _stripStyle = __webpack_require__(211);
+	var _stripStyle = __webpack_require__(213);
 	
 	var _stripStyle2 = _interopRequireDefault(_stripStyle);
 	
-	var _stepper3 = __webpack_require__(212);
+	var _stepper3 = __webpack_require__(214);
 	
 	var _stepper4 = _interopRequireDefault(_stepper3);
 	
-	var _performanceNow = __webpack_require__(213);
+	var _performanceNow = __webpack_require__(215);
 	
 	var _performanceNow2 = _interopRequireDefault(_performanceNow);
 	
-	var _raf = __webpack_require__(214);
+	var _raf = __webpack_require__(216);
 	
 	var _raf2 = _interopRequireDefault(_raf);
 	
-	var _shouldStopAnimation = __webpack_require__(215);
+	var _shouldStopAnimation = __webpack_require__(217);
 	
 	var _shouldStopAnimation2 = _interopRequireDefault(_shouldStopAnimation);
 	
@@ -40819,7 +40934,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 217 */
+/* 219 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -40830,31 +40945,31 @@
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 	
-	var _mapToZero = __webpack_require__(210);
+	var _mapToZero = __webpack_require__(212);
 	
 	var _mapToZero2 = _interopRequireDefault(_mapToZero);
 	
-	var _stripStyle = __webpack_require__(211);
+	var _stripStyle = __webpack_require__(213);
 	
 	var _stripStyle2 = _interopRequireDefault(_stripStyle);
 	
-	var _stepper3 = __webpack_require__(212);
+	var _stepper3 = __webpack_require__(214);
 	
 	var _stepper4 = _interopRequireDefault(_stepper3);
 	
-	var _mergeDiff = __webpack_require__(218);
+	var _mergeDiff = __webpack_require__(220);
 	
 	var _mergeDiff2 = _interopRequireDefault(_mergeDiff);
 	
-	var _performanceNow = __webpack_require__(213);
+	var _performanceNow = __webpack_require__(215);
 	
 	var _performanceNow2 = _interopRequireDefault(_performanceNow);
 	
-	var _raf = __webpack_require__(214);
+	var _raf = __webpack_require__(216);
 	
 	var _raf2 = _interopRequireDefault(_raf);
 	
-	var _shouldStopAnimation = __webpack_require__(215);
+	var _shouldStopAnimation = __webpack_require__(217);
 	
 	var _shouldStopAnimation2 = _interopRequireDefault(_shouldStopAnimation);
 	
@@ -41312,7 +41427,7 @@
 	// that you've unmounted but that's still animating. This is where it lives
 
 /***/ },
-/* 218 */
+/* 220 */
 /***/ function(module, exports) {
 
 	
@@ -41425,7 +41540,7 @@
 	// to loop through and find a key's index each time), but I no longer care
 
 /***/ },
-/* 219 */
+/* 221 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -41438,7 +41553,7 @@
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 	
-	var _presets = __webpack_require__(220);
+	var _presets = __webpack_require__(222);
 	
 	var _presets2 = _interopRequireDefault(_presets);
 	
@@ -41453,7 +41568,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 220 */
+/* 222 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -41468,7 +41583,7 @@
 	module.exports = exports["default"];
 
 /***/ },
-/* 221 */
+/* 223 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
