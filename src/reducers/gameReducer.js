@@ -10,7 +10,8 @@ import {
 import {
   ADD_NEW_PLAYER,
   MOVE_PLAYER,
-  CHANGE_PLAYER
+  CHANGE_PLAYER,
+  CHANGE_PLAYER_POSITION_IN_BOX
 } from '../actions/GameActions';
 
 const initialState = {
@@ -21,6 +22,7 @@ const initialState = {
     layout: _constructGrid(),
     width: GRID_WIDTH,
     height: GRID_HEIGHT,
+    occupancy: _initializeOccupancy(),
     box: {
       height: BOX_HEIGHT,
       width: BOX_WIDTH
@@ -33,7 +35,8 @@ const initialState = {
       pos: 1,
       color: '#675652',
       path: [1],
-      diceLog: []
+      diceLog: [],
+      boxPosition: -1 //center
     },
     all: [
       {
@@ -41,7 +44,8 @@ const initialState = {
         pos: 1,
         color: '#675652',
         path: [1],
-        diceLog: []
+        diceLog: [],
+        boxPosition: -1 //center
       }
     ]
   }
@@ -51,34 +55,56 @@ export function game (state = initialState, action) {
 
   switch (action.type) {
     case ADD_NEW_PLAYER:
+      const newPlayer = _generateNewPlayer(state.players.count);
+
       return {
           ...state,
+          grid: {
+            ...state.grid,
+            occupancy: {
+              ...state.grid.occupancy,
+              1: state.grid.occupancy[1] + 1
+            }
+          },
           players: {
             ...state.players,
-            all: [ ...state.players.all ,_newPlayer(state.players.count)],
+            all: [ ...state.players.all ,newPlayer],
             count: state.players.count + 1,
           }
       };
 
     case MOVE_PLAYER:
-      const newPos = state.players.current.pos + action.diceResult
+      const newPos = state.players.current.pos + action.diceResult;
+      let newOccupancy = {};
+      newOccupancy[newPos] = state.grid.occupancy[newPos];
+      newOccupancy[state.players.current.pos] = state.grid.occupancy[state.players.current.pos] - 1;
+
       return {
         ...state,
         dice: {
           ...state.dice,
           disabled: true
         },
+        grid: {
+          ...state.grid,
+          occupancy: {
+            ...state.grid.occupancy,
+            ...newOccupancy
+          }
+        },
         players: {
           ...state.players,
           all: state.players.all.map((p) => {
             if (p.id === state.players.current.id) {
-              p.pos = newPos
+              p.pos = newPos;
+              p.boxPosition = -1;
             }
             return p;
           }),
           current: {
             ...state.players.current,
             pos: newPos,
+            boxPosition: -1,
             path: [...state.players.current.path, newPos],
             diceLog: [...state.players.current.diceLog, action.diceResult]
           }
@@ -95,6 +121,25 @@ export function game (state = initialState, action) {
         players: {
           ...state.players,
           current: nextPlayer
+        }
+      }
+
+    case CHANGE_PLAYER_POSITION_IN_BOX:
+      let curPlayer = state.players.current.id === action.playerId
+                      ?
+                      { ...state.players.current, boxPosition: action.newBoxPosition }
+                      : state.players.current
+      return {
+        ...state,
+        players: {
+          ...state.players,
+          all: state.players.all.map((p) => {
+            if (p.id === action.playerId) {
+              p.boxPosition = action.newBoxPosition;
+            }
+            return p;
+          }),
+          current: curPlayer
         }
       }
 
@@ -133,16 +178,26 @@ function _constructGrid () {
   return grid;
 }
 
-function _newPlayer (curCount) {
+function _generateNewPlayer (curCount) {
   return {
     id: curCount + 1,
     color: getRandomColor(),
     pos: 1,
     path: [1],
-    diceLog: []
+    diceLog: [],
+    boxPosition: -1 //center
   }
 }
 
 function _getNextPlayer ({all, current, count}) {
   return current.id === count ? all[0] : all.filter((p) => p.id === current.id + 1 )[0];
+}
+
+function _initializeOccupancy () {
+  var occupacy = {};
+  occupacy[1] = 1;
+  for (let i=2; i<=100; i++) {
+    occupacy[i] = 0;
+  }
+  return occupacy;
 }

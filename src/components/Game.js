@@ -8,7 +8,8 @@ import {
   addNewPlayer,
   getRollDiceResult,
   movePlayer,
-  changePlayer
+  changePlayer,
+  changePlayerPositionInBox
 } from '../actions/GameActions';
 import { getPlayerCoordinates } from '../config/utils';
 
@@ -21,13 +22,29 @@ export default class Game extends React.Component {
   _rollDice () {
       const { pos: currentPos, id } = this.props.game.players.current;
       this.props.movePlayer(getRollDiceResult());
+      this._resolveOccupancyOverload();
       setTimeout(() => {
         this.props.changePlayer();
       }, 2000);
   }
 
+  _resolveOccupancyOverload () {
+    const { grid: { occupancy }, players: { all } } = this.props.game;
+    const boxesWithMoreThanOneOccupants = Object.keys(occupancy).filter((box) => occupancy[box]>1);
+    for (let box of boxesWithMoreThanOneOccupants) {
+      const playersWithinBox = all.filter((player) => player.pos == box);
+      let count = 0;
+      for (let player of playersWithinBox) {
+        this.props.changePlayerPositionInBox(player.id, count++);
+      }
+    }
+  }
+
   _addNewPlayer () {
     this.props.addNewPlayer();
+    setTimeout(() => {
+      this._resolveOccupancyOverload();
+    }, 400);
   }
 
   render () {
@@ -73,5 +90,6 @@ function mapStateToProps(state) {
 export default connect(mapStateToProps, {
   addNewPlayer,
   movePlayer,
-  changePlayer
+  changePlayer,
+  changePlayerPositionInBox
 })(Game);
