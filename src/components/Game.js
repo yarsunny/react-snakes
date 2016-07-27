@@ -1,21 +1,16 @@
 import React from 'react';
-import Grid from './Grid';
 import { connect } from 'react-redux';
-
-import {
-  Layer,
-  Rect,
-  Stage,
-  Group,
-  Text
-} from 'react-konva';
-import Player from './Player';
+import { Stage } from 'react-konva';
+import CanvasGrid from './Canvas.Grid';
+import CanvasPlayer from './Canvas.Player';
+import Players from './Players';
 import {
   addNewPlayer,
   getRollDiceResult,
-  movePlayer
+  movePlayer,
+  changePlayer
 } from '../actions/GameActions';
-
+import { getPlayerCoordinates } from '../config/utils';
 
 export default class Game extends React.Component {
 
@@ -26,32 +21,42 @@ export default class Game extends React.Component {
   _rollDice () {
       const { pos: currentPos, id } = this.props.game.players.current;
       this.props.movePlayer(getRollDiceResult());
+      setTimeout(() => {
+        this.props.changePlayer();
+      }, 2000);
   }
 
-  _getPlayerCoordinates () {
-    const { grid: { layout }, players: { current: { pos } } } = this.props.game;
-    return {
-      x: layout[pos].x,
-      y: layout[pos].y
-    };
+  _addNewPlayer () {
+    this.props.addNewPlayer();
   }
 
   render () {
-    const { grid: { width, height}, grid, players: { all, current } } = this.props.game;
-    const currentPlayerCoordinates = this._getPlayerCoordinates();
+    const { dice: { disabled: isDiceDisabled }, grid: { width, height, layout }, grid, players: { all, current }, players } = this.props.game;
 
     return (
       <div>
-        <h1>this is a game</h1>
         <div>
-          <button onClick={this._rollDice.bind(this)}>Roll Dice</button>
+          <button disabled={isDiceDisabled} onClick={this._rollDice.bind(this)}>Roll Dice</button>
+          <button onClick={this._addNewPlayer.bind(this)}>Add New Player</button>
+          <div>Current Player: {current.id}</div>
+          <Players players={players} />
         </div>
         <Stage
           width={width}
           height={height}>
-          <Grid grid={grid}>
-          </Grid>
-          <Player current={current} coordinates={currentPlayerCoordinates}></Player>
+          <CanvasGrid grid={grid} />
+          {
+            all.map((p, index) => {
+              return (
+                <CanvasPlayer
+                  key={`canvasplayer_${index}`}
+                  player={p}
+                  current={current}
+                  layout={layout}
+                  />
+              )
+            })
+          }
         </Stage>
       </div>
     );
@@ -67,5 +72,6 @@ function mapStateToProps(state) {
 
 export default connect(mapStateToProps, {
   addNewPlayer,
-  movePlayer
+  movePlayer,
+  changePlayer
 })(Game);

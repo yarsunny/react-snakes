@@ -6,7 +6,7 @@ import {
   Text
 } from 'react-konva';
 
-export default class Grid extends React.Component {
+export default class CanvasGrid extends React.Component {
 
   render () {
     const { layout, box: { width: boxWidth, height: boxHeight } } = this.props.grid;

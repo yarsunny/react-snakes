@@ -9,12 +9,16 @@ import {
 } from '../config/utils';
 import {
   ADD_NEW_PLAYER,
-  MOVE_PLAYER
+  MOVE_PLAYER,
+  CHANGE_PLAYER
 } from '../actions/GameActions';
 
 const initialState = {
+  dice: {
+    disabled: false
+  },
   grid: {
-    layout: constructGrid(),
+    layout: _constructGrid(),
     width: GRID_WIDTH,
     height: GRID_HEIGHT,
     box: {
@@ -27,48 +31,72 @@ const initialState = {
     current: {
       id: 1,
       pos: 1,
-      color: '#675652'
+      color: '#675652',
+      path: [1],
+      diceLog: []
     },
     all: [
       {
         id: 1,
         pos: 1,
-        color: '#675652'
+        color: '#675652',
+        path: [1],
+        diceLog: []
       }
     ]
   }
 }
 
 export function game (state = initialState, action) {
-  debugger;
+
   switch (action.type) {
     case ADD_NEW_PLAYER:
       return {
           ...state,
           players: {
             ...state.players,
-            all: state.players.all.push(newPlayer(state.players.count)),
+            all: [ ...state.players.all ,_newPlayer(state.players.count)],
             count: state.players.count + 1,
           }
       };
 
     case MOVE_PLAYER:
+      const newPos = state.players.current.pos + action.diceResult
       return {
         ...state,
+        dice: {
+          ...state.dice,
+          disabled: true
+        },
         players: {
           ...state.players,
           all: state.players.all.map((p) => {
             if (p.id === state.players.current.id) {
-              p.pos = p.pos + action.diceResult
+              p.pos = newPos
             }
             return p;
           }),
           current: {
             ...state.players.current,
-            pos: state.players.current.pos + action.diceResult
+            pos: newPos,
+            path: [...state.players.current.path, newPos],
+            diceLog: [...state.players.current.diceLog, action.diceResult]
           }
         }
       };
+
+    case CHANGE_PLAYER:
+      var nextPlayer = _getNextPlayer(state.players)
+      return {
+        ...state,
+        dice: {
+          disabled: false
+        },
+        players: {
+          ...state.players,
+          current: nextPlayer
+        }
+      }
 
     default:
       return state;
@@ -78,7 +106,7 @@ export function game (state = initialState, action) {
 /*
  * Private functions
  */
-function constructGrid () {
+function _constructGrid () {
   let grid = {};
   const oddRows = [1, 3, 5, 7, 9],
         evenRows = [0, 2, 4, 6, 8];
@@ -105,10 +133,16 @@ function constructGrid () {
   return grid;
 }
 
-function newPlayer (curCount) {
+function _newPlayer (curCount) {
   return {
     id: curCount + 1,
     color: getRandomColor(),
-    pos: 1
+    pos: 1,
+    path: [1],
+    diceLog: []
   }
+}
+
+function _getNextPlayer ({all, current, count}) {
+  return current.id === count ? all[0] : all.filter((p) => p.id === current.id + 1 )[0];
 }
