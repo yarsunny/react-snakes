@@ -247,7 +247,7 @@ export function game (state = initialState, action) {
     case LOG_MESSAGE:
       return {
         ...state,
-        messages: [...state.messages, action.message]
+        messages: [action.message, ...state.messages]
       };
 
     case SET_PLAYER_PERSISTENCE:
@@ -310,7 +310,7 @@ export function game (state = initialState, action) {
             ladderHikes: newLadderHikes
           }
         }
-      };    
+      };
 
     default:
       return state;
