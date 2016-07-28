@@ -6,6 +6,10 @@ export const RECORD_DICE_LOG = 'RECORD_DICE_LOG';
 export const LOG_MESSAGE = 'LOG_MESSAGE';
 export const SET_PLAYER_PERSISTENCE = 'SET_PLAYER_PERSISTENCE';
 export const ENABLE_DICE = 'ENABLE_DICE';
+export const END_GAME = 'END_GAME';
+export const ADD_SNAKE_BITE = 'ADD_SNAKE_BITE';
+export const ADD_LADDER_HIKE = 'ADD_LADDER_HIKE';
+export const SHAKE_PLAYERS = 'SHAKE_PLAYERS';
 
 export function addNewPlayer () {
   return {
@@ -46,7 +50,7 @@ export function changePlayerPositionInBox (playerId, newBoxPosition) {
 export function recordDiceLog (diceResult) {
   return {
     type: RECORD_DICE_LOG,
-    recordDiceLog
+    diceResult
   }
 }
 
@@ -67,5 +71,25 @@ export function setPlayerPersistence (persistence) {
 export function enableDice () {
   return {
     type: ENABLE_DICE
+  }
+}
+
+export function endGame () {
+  return {
+    type: END_GAME
+  }
+}
+
+export function addSnakeBite (playerId) {
+  return {
+    type: ADD_SNAKE_BITE,
+    playerId
+  }
+}
+
+export function addLadderHike (playerId) {
+  return {
+    type: ADD_LADDER_HIKE,
+    playerId
   }
 }

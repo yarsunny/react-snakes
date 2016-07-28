@@ -2,7 +2,9 @@ import {
   BOX_WIDTH,
   BOX_HEIGHT,
   GRID_WIDTH,
-  GRID_HEIGHT
+  GRID_HEIGHT,
+  GAME_OVER,
+  GAME_ON
 } from '../config/variables';
 import {
   getRandomColor,
@@ -16,11 +18,15 @@ import {
   RECORD_DICE_LOG,
   LOG_MESSAGE,
   SET_PLAYER_PERSISTENCE,
-  ENABLE_DICE
+  ENABLE_DICE,
+  END_GAME,
+  ADD_SNAKE_BITE,
+  ADD_LADDER_HIKE
 } from '../actions/GameActions';
 
 const firstPlayerColor = getRandomColor();
 const initialState = {
+  status: GAME_ON,
   dice: {
     disabled: false
   },
@@ -110,7 +116,9 @@ const initialState = {
       color: firstPlayerColor,
       path: [1],
       diceLog: [],
-      boxPosition: -1 //center
+      boxPosition: -1, //center
+      snakeBites: 0,
+      ladderHikes:0
     },
     all: [
       {
@@ -119,7 +127,9 @@ const initialState = {
         color: firstPlayerColor,
         path: [1],
         diceLog: [],
-        boxPosition: -1 //center
+        boxPosition: -1, //center
+        snakeBites: 0,
+        ladderHikes:0
       }
     ]
   }
@@ -256,7 +266,51 @@ export function game (state = initialState, action) {
           ...state.dice,
           disabled: false
         }
+      };
+
+    case END_GAME:
+      return {
+        ...state,
+        status: GAME_OVER
+      };
+
+    case ADD_SNAKE_BITE:
+      const newSnakeBites = state.players.current.snakeBites + 1;
+      return {
+        ...state,
+        players: {
+          ...state.players,
+          all: state.players.all.map((p) => {
+            if (p.id === state.players.current.id) {
+              p.snakeBites = newSnakeBites;
+            }
+            return p;
+          }),
+          current: {
+            ...state.players.current,
+            snakeBites: newSnakeBites
+          }
+        }
       }
+
+    case ADD_LADDER_HIKE:
+      const newLadderHikes = state.players.current.ladderHikes + 1;
+      return {
+        ...state,
+        players: {
+          ...state.players,
+          all: state.players.all.map((p) => {
+            if (p.id === state.players.current.id) {
+              p.ladderHikes = newLadderHikes;
+            }
+            return p;
+          }),
+          current: {
+            ...state.players.current,
+            ladderHikes: newLadderHikes
+          }
+        }
+      };    
 
     default:
       return state;
@@ -274,7 +328,9 @@ function _generateNewPlayer (curCount) {
     pos: 1,
     path: [1],
     diceLog: [],
-    boxPosition: -1 //center
+    boxPosition: -1, //center
+    snakeBites: 0,
+    ladderHikes: 0,
   }
 }
 

@@ -22981,6 +22981,8 @@
 	  value: true
 	});
 	
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+	
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 	
 	exports.game = game;
@@ -22995,6 +22997,7 @@
 	
 	var firstPlayerColor = (0, _utils.getRandomColor)();
 	var initialState = {
+	  status: _variables.GAME_ON,
 	  dice: {
 	    disabled: false
 	  },
@@ -23068,7 +23071,9 @@
 	      color: firstPlayerColor,
 	      path: [1],
 	      diceLog: [],
-	      boxPosition: -1 //center
+	      boxPosition: -1, //center
+	      snakeBites: 0,
+	      ladderHikes: 0
 	    },
 	    all: [{
 	      id: 1,
@@ -23076,7 +23081,9 @@
 	      color: firstPlayerColor,
 	      path: [1],
 	      diceLog: [],
-	      boxPosition: -1 //center
+	      boxPosition: -1, //center
+	      snakeBites: 0,
+	      ladderHikes: 0
 	    }]
 	  }
 	};
@@ -23084,115 +23091,182 @@
 	function game() {
 	  var state = arguments.length <= 0 || arguments[0] === undefined ? initialState : arguments[0];
 	  var action = arguments[1];
+	  var nextPlayer;
 	
+	  var _ret = function () {
 	
-	  switch (action.type) {
-	    case _GameActions.ADD_NEW_PLAYER:
-	      var newPlayer = _generateNewPlayer(state.players.count);
+	    switch (action.type) {
+	      case _GameActions.ADD_NEW_PLAYER:
+	        var newPlayer = _generateNewPlayer(state.players.count);
 	
-	      return _extends({}, state, {
-	        grid: _extends({}, state.grid, {
-	          occupancy: _extends({}, state.grid.occupancy, {
-	            1: state.grid.occupancy[1] + 1
+	        return {
+	          v: _extends({}, state, {
+	            grid: _extends({}, state.grid, {
+	              occupancy: _extends({}, state.grid.occupancy, {
+	                1: state.grid.occupancy[1] + 1
+	              })
+	            }),
+	            players: _extends({}, state.players, {
+	              all: [].concat(_toConsumableArray(state.players.all), [newPlayer]),
+	              count: state.players.count + 1
+	            })
 	          })
-	        }),
-	        players: _extends({}, state.players, {
-	          all: [].concat(_toConsumableArray(state.players.all), [newPlayer]),
-	          count: state.players.count + 1
-	        })
-	      });
+	        };
 	
-	    case _GameActions.MOVE_PLAYER:
-	      var newOccupancy = {};
-	      newOccupancy[action.newPos] = state.grid.occupancy[action.newPos] + 1;
-	      newOccupancy[state.players.current.pos] = state.grid.occupancy[state.players.current.pos] - 1;
+	      case _GameActions.MOVE_PLAYER:
+	        var newOccupancy = {};
+	        newOccupancy[action.newPos] = state.grid.occupancy[action.newPos] + 1;
+	        newOccupancy[state.players.current.pos] = state.grid.occupancy[state.players.current.pos] - 1;
 	
-	      return _extends({}, state, {
-	        dice: _extends({}, state.dice, {
-	          disabled: true
-	        }),
-	        grid: _extends({}, state.grid, {
-	          occupancy: _extends({}, state.grid.occupancy, newOccupancy)
-	        }),
-	        players: _extends({}, state.players, {
-	          all: state.players.all.map(function (p) {
-	            if (p.id === state.players.current.id) {
-	              p.pos = action.newPos;
-	              p.boxPosition = -1;
-	              p.path = [].concat(_toConsumableArray(p.path), [action.newPos]);
-	            }
-	            return p;
-	          }),
-	          current: _extends({}, state.players.current, {
-	            pos: action.newPos,
-	            boxPosition: -1,
-	            path: [].concat(_toConsumableArray(state.players.current.path), [action.newPos])
+	        return {
+	          v: _extends({}, state, {
+	            dice: _extends({}, state.dice, {
+	              disabled: true
+	            }),
+	            grid: _extends({}, state.grid, {
+	              occupancy: _extends({}, state.grid.occupancy, newOccupancy)
+	            }),
+	            players: _extends({}, state.players, {
+	              all: state.players.all.map(function (p) {
+	                if (p.id === state.players.current.id) {
+	                  p.pos = action.newPos;
+	                  p.boxPosition = -1;
+	                  p.path = [].concat(_toConsumableArray(p.path), [action.newPos]);
+	                }
+	                return p;
+	              }),
+	              current: _extends({}, state.players.current, {
+	                pos: action.newPos,
+	                boxPosition: -1,
+	                path: [].concat(_toConsumableArray(state.players.current.path), [action.newPos])
+	              })
+	            })
 	          })
-	        })
-	      });
+	        };
 	
-	    case _GameActions.CHANGE_PLAYER:
-	      var nextPlayer = _getNextPlayer(state.players);
-	      return _extends({}, state, {
-	        dice: {
-	          disabled: false
-	        },
-	        players: _extends({}, state.players, {
-	          current: nextPlayer
-	        })
-	      });
+	      case _GameActions.CHANGE_PLAYER:
+	        nextPlayer = _getNextPlayer(state.players);
 	
-	    case _GameActions.RECORD_DICE_LOG:
-	      return _extends({}, state, {
-	        players: _extends({}, state.players, {
-	          all: state.players.all.map(function (p) {
-	            if (p.id === state.players.current.id) {
-	              p.diceLog = [].concat(_toConsumableArray(p.diceLog), [action.diceResult]);
-	            }
-	            return p;
-	          }),
-	          current: _extends({}, state.players.current, {
-	            diceLog: [].concat(_toConsumableArray(state.players.current.diceLog), [action.diceResult])
+	        return {
+	          v: _extends({}, state, {
+	            dice: {
+	              disabled: false
+	            },
+	            players: _extends({}, state.players, {
+	              current: nextPlayer
+	            })
 	          })
-	        })
-	      });
+	        };
 	
-	    case _GameActions.CHANGE_PLAYER_POSITION_IN_BOX:
-	      var curPlayer = state.players.current.id === action.playerId ? _extends({}, state.players.current, { boxPosition: action.newBoxPosition }) : state.players.current;
-	      return _extends({}, state, {
-	        players: _extends({}, state.players, {
-	          all: state.players.all.map(function (p) {
-	            if (p.id === action.playerId) {
-	              p.boxPosition = action.newBoxPosition;
-	            }
-	            return p;
-	          }),
-	          current: curPlayer
-	        })
-	      });
+	      case _GameActions.RECORD_DICE_LOG:
+	        return {
+	          v: _extends({}, state, {
+	            players: _extends({}, state.players, {
+	              all: state.players.all.map(function (p) {
+	                if (p.id === state.players.current.id) {
+	                  p.diceLog = [].concat(_toConsumableArray(p.diceLog), [action.diceResult]);
+	                }
+	                return p;
+	              }),
+	              current: _extends({}, state.players.current, {
+	                diceLog: [].concat(_toConsumableArray(state.players.current.diceLog), [action.diceResult])
+	              })
+	            })
+	          })
+	        };
 	
-	    case _GameActions.LOG_MESSAGE:
-	      return _extends({}, state, {
-	        messages: [].concat(_toConsumableArray(state.messages), [action.message])
-	      });
+	      case _GameActions.CHANGE_PLAYER_POSITION_IN_BOX:
+	        var curPlayer = state.players.current.id === action.playerId ? _extends({}, state.players.current, { boxPosition: action.newBoxPosition }) : state.players.current;
+	        return {
+	          v: _extends({}, state, {
+	            players: _extends({}, state.players, {
+	              all: state.players.all.map(function (p) {
+	                if (p.id === action.playerId) {
+	                  p.boxPosition = action.newBoxPosition;
+	                }
+	                return p;
+	              }),
+	              current: curPlayer
+	            })
+	          })
+	        };
 	
-	    case _GameActions.SET_PLAYER_PERSISTENCE:
-	      return _extends({}, state, {
-	        players: _extends({}, state.players, {
-	          persistence: action.persistence
-	        })
-	      });
+	      case _GameActions.LOG_MESSAGE:
+	        return {
+	          v: _extends({}, state, {
+	            messages: [].concat(_toConsumableArray(state.messages), [action.message])
+	          })
+	        };
 	
-	    case _GameActions.ENABLE_DICE:
-	      return _extends({}, state, {
-	        dice: _extends({}, state.dice, {
-	          disabled: false
-	        })
-	      });
+	      case _GameActions.SET_PLAYER_PERSISTENCE:
+	        return {
+	          v: _extends({}, state, {
+	            players: _extends({}, state.players, {
+	              persistence: action.persistence
+	            })
+	          })
+	        };
 	
-	    default:
-	      return state;
-	  }
+	      case _GameActions.ENABLE_DICE:
+	        return {
+	          v: _extends({}, state, {
+	            dice: _extends({}, state.dice, {
+	              disabled: false
+	            })
+	          })
+	        };
+	
+	      case _GameActions.END_GAME:
+	        return {
+	          v: _extends({}, state, {
+	            status: _variables.GAME_OVER
+	          })
+	        };
+	
+	      case _GameActions.ADD_SNAKE_BITE:
+	        var newSnakeBites = state.players.current.snakeBites + 1;
+	        return {
+	          v: _extends({}, state, {
+	            players: _extends({}, state.players, {
+	              all: state.players.all.map(function (p) {
+	                if (p.id === state.players.current.id) {
+	                  p.snakeBites = newSnakeBites;
+	                }
+	                return p;
+	              }),
+	              current: _extends({}, state.players.current, {
+	                snakeBites: newSnakeBites
+	              })
+	            })
+	          })
+	        };
+	
+	      case _GameActions.ADD_LADDER_HIKE:
+	        var newLadderHikes = state.players.current.ladderHikes + 1;
+	        return {
+	          v: _extends({}, state, {
+	            players: _extends({}, state.players, {
+	              all: state.players.all.map(function (p) {
+	                if (p.id === state.players.current.id) {
+	                  p.ladderHikes = newLadderHikes;
+	                }
+	                return p;
+	              }),
+	              current: _extends({}, state.players.current, {
+	                ladderHikes: newLadderHikes
+	              })
+	            })
+	          })
+	        };
+	
+	      default:
+	        return {
+	          v: state
+	        };
+	    }
+	  }();
+	
+	  if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
 	}
 	
 	/*
@@ -23206,7 +23280,9 @@
 	    pos: 1,
 	    path: [1],
 	    diceLog: [],
-	    boxPosition: -1 //center
+	    boxPosition: -1, //center
+	    snakeBites: 0,
+	    ladderHikes: 0
 	  };
 	}
 	
@@ -23242,6 +23318,9 @@
 	var GRID_HEIGHT = exports.GRID_HEIGHT = 600;
 	var BOX_WIDTH = exports.BOX_WIDTH = GRID_WIDTH / 10;
 	var BOX_HEIGHT = exports.BOX_HEIGHT = GRID_HEIGHT / 10;
+	var GAME_ON = exports.GAME_ON = 1;
+	var GAME_OVER = exports.GAME_OVER = 0;
+	var MAX_PLAYERS = exports.MAX_PLAYERS = 4;
 
 /***/ },
 /* 201 */
@@ -23355,6 +23434,9 @@
 	exports.logMessage = logMessage;
 	exports.setPlayerPersistence = setPlayerPersistence;
 	exports.enableDice = enableDice;
+	exports.endGame = endGame;
+	exports.addSnakeBite = addSnakeBite;
+	exports.addLadderHike = addLadderHike;
 	var ADD_NEW_PLAYER = exports.ADD_NEW_PLAYER = 'ADD_NEW_PLAYER';
 	var MOVE_PLAYER = exports.MOVE_PLAYER = 'MOVE_PLAYER';
 	var CHANGE_PLAYER = exports.CHANGE_PLAYER = 'CHANGE_PLAYER';
@@ -23363,6 +23445,10 @@
 	var LOG_MESSAGE = exports.LOG_MESSAGE = 'LOG_MESSAGE';
 	var SET_PLAYER_PERSISTENCE = exports.SET_PLAYER_PERSISTENCE = 'SET_PLAYER_PERSISTENCE';
 	var ENABLE_DICE = exports.ENABLE_DICE = 'ENABLE_DICE';
+	var END_GAME = exports.END_GAME = 'END_GAME';
+	var ADD_SNAKE_BITE = exports.ADD_SNAKE_BITE = 'ADD_SNAKE_BITE';
+	var ADD_LADDER_HIKE = exports.ADD_LADDER_HIKE = 'ADD_LADDER_HIKE';
+	var SHAKE_PLAYERS = exports.SHAKE_PLAYERS = 'SHAKE_PLAYERS';
 	
 	function addNewPlayer() {
 	  return {
@@ -23402,7 +23488,7 @@
 	function recordDiceLog(diceResult) {
 	  return {
 	    type: RECORD_DICE_LOG,
-	    recordDiceLog: recordDiceLog
+	    diceResult: diceResult
 	  };
 	}
 	
@@ -23423,6 +23509,26 @@
 	function enableDice() {
 	  return {
 	    type: ENABLE_DICE
+	  };
+	}
+	
+	function endGame() {
+	  return {
+	    type: END_GAME
+	  };
+	}
+	
+	function addSnakeBite(playerId) {
+	  return {
+	    type: ADD_SNAKE_BITE,
+	    playerId: playerId
+	  };
+	}
+	
+	function addLadderHike(playerId) {
+	  return {
+	    type: ADD_LADDER_HIKE,
+	    playerId: playerId
 	  };
 	}
 
@@ -23466,7 +23572,15 @@
 	
 	var _Players2 = _interopRequireDefault(_Players);
 	
+	var _Results = __webpack_require__(227);
+	
+	var _Results2 = _interopRequireDefault(_Results);
+	
 	var _GameActions = __webpack_require__(202);
+	
+	var _variables = __webpack_require__(200);
+	
+	var _style = __webpack_require__(231);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -23498,19 +23612,27 @@
 	      var newPos = pos + diceResult;
 	
 	      this.props.recordDiceLog(diceResult);
-	      this.props.movePlayer(newPos);
-	      this.props.logMessage('Player ' + id + ' moved to block ' + newPos);
-	
-	      this._checkSnakeBiteorLadderJump(newPos);
-	      this._resolveOccupancyOverload();
-	
-	      if (diceResult === 6 && persistence <= 3) {
-	        this.props.logMessage('SIX SIX SIX ' + persistence);
-	        this.props.enableDice();
-	        this.props.setPlayerPersistence(persistence + 1);
-	      } else {
+	      if (newPos > 100) {
+	        this.props.logMessage('Hang in there Player ' + id);
 	        this.props.changePlayer();
-	        this.props.setPlayerPersistence(1);
+	      } else if (newPos == 100) {
+	        this.props.movePlayer(newPos);
+	        this.props.endGame();
+	      } else {
+	        this.props.movePlayer(newPos);
+	        this.props.logMessage('Player ' + id + ' moved to block ' + newPos);
+	
+	        this._checkSnakeBiteorLadderJump(newPos);
+	        this._resolveOccupancyOverload();
+	
+	        if (diceResult === 6 && persistence < 3) {
+	          this.props.logMessage('SIX SIX SIX ' + persistence);
+	          this.props.enableDice();
+	          this.props.setPlayerPersistence(persistence + 1);
+	        } else {
+	          this.props.changePlayer();
+	          this.props.setPlayerPersistence(1);
+	        }
 	      }
 	    }
 	  }, {
@@ -23534,6 +23656,7 @@
 	          return s.startPos === playerPos;
 	        })[0];
 	        this.props.movePlayer(snake.endPos);
+	        this.props.addSnakeBite();
 	        this.props.logMessage('Player ' + id + ' got BUSTED, moved to block ' + snake.endPos);
 	      }
 	
@@ -23543,6 +23666,7 @@
 	          return l.startPos === playerPos;
 	        })[0];
 	        this.props.movePlayer(ladder.endPos);
+	        this.props.addLadderHike();
 	        this.props.logMessage('Player ' + id + ' found a redbull, moved to block ' + ladder.endPos);
 	      }
 	    }
@@ -23625,7 +23749,10 @@
 	  }, {
 	    key: 'render',
 	    value: function render() {
+	      var _this3 = this;
+	
 	      var _props$game3 = this.props.game;
+	      var status = _props$game3.status;
 	      var isDiceDisabled = _props$game3.dice.disabled;
 	      var _props$game3$grid = _props$game3.grid;
 	      var width = _props$game3$grid.width;
@@ -23635,6 +23762,7 @@
 	      var _props$game3$players = _props$game3.players;
 	      var all = _props$game3$players.all;
 	      var current = _props$game3$players.current;
+	      var playerCount = _props$game3$players.count;
 	      var players = _props$game3.players;
 	      var snakes = _props$game3.snakes;
 	      var ladders = _props$game3.ladders;
@@ -23643,68 +23771,83 @@
 	
 	      return _react2.default.createElement(
 	        'div',
-	        null,
-	        _react2.default.createElement(
+	        { style: _style.gameStyles.main },
+	        status === _variables.GAME_ON ? _react2.default.createElement(
 	          'div',
 	          null,
 	          _react2.default.createElement(
-	            'button',
-	            { disabled: isDiceDisabled, onClick: this._rollDice.bind(this) },
-	            'Roll Dice'
-	          ),
-	          _react2.default.createElement(
-	            'button',
-	            { onClick: this._addNewPlayer.bind(this) },
-	            'Add New Player'
+	            'div',
+	            { style: _style.gameStyles.gameBlock },
+	            _react2.default.createElement(
+	              _reactKonva.Stage,
+	              {
+	                width: width,
+	                height: height },
+	              _react2.default.createElement(_Canvas2.default, { grid: grid }),
+	              /* players */
+	              all.map(function (p, index) {
+	                return _react2.default.createElement(_Canvas4.default, {
+	                  key: 'canvasPlayer_' + index,
+	                  player: p,
+	                  current: current
+	                });
+	              }),
+	              /* snakes */
+	              snakes.map(function (s, index) {
+	                return _react2.default.createElement(_Canvas6.default, {
+	                  key: 'canvasSnake_' + index,
+	                  snake: s
+	                });
+	              }),
+	              /* ladders */
+	              ladders.map(function (l, index) {
+	                return _react2.default.createElement(_Canvas8.default, {
+	                  key: 'canvasLadder_' + index,
+	                  ladder: l
+	                });
+	              })
+	            )
 	          ),
 	          _react2.default.createElement(
 	            'div',
-	            null,
-	            'Current Player: ',
-	            current.id
-	          ),
-	          _react2.default.createElement(
-	            'div',
-	            null,
-	            messages.map(function (message, index) {
-	              return _react2.default.createElement(
-	                'div',
-	                { key: 'message_' + index },
-	                message
-	              );
-	            })
-	          ),
-	          _react2.default.createElement(_Players2.default, { players: players })
-	        ),
-	        _react2.default.createElement(
-	          _reactKonva.Stage,
-	          {
-	            width: width,
-	            height: height },
-	          _react2.default.createElement(_Canvas2.default, { grid: grid }),
-	          /* players */
-	          all.map(function (p, index) {
-	            return _react2.default.createElement(_Canvas4.default, {
-	              key: 'canvasPlayer_' + index,
-	              player: p,
-	              current: current
-	            });
-	          }),
-	          /* snakes */
-	          snakes.map(function (s, index) {
-	            return _react2.default.createElement(_Canvas6.default, {
-	              key: 'canvasSnake_' + index,
-	              snake: s
-	            });
-	          }),
-	          /* ladders */
-	          ladders.map(function (l, index) {
-	            return _react2.default.createElement(_Canvas8.default, {
-	              key: 'canvasLadder_' + index,
-	              ladder: l
-	            });
-	          })
-	        )
+	            { style: _style.gameStyles.dataBlock },
+	            _react2.default.createElement(
+	              'button',
+	              { disabled: isDiceDisabled, onClick: this._rollDice.bind(this), style: _style.gameStyles.cta },
+	              'Roll Dice'
+	            ),
+	            _react2.default.createElement(
+	              'button',
+	              { onClick: function onClick() {
+	                  _this3.props.endGame();
+	                }, style: _style.gameStyles.cta },
+	              'End Game'
+	            ),
+	            playerCount < _variables.MAX_PLAYERS ? _react2.default.createElement(
+	              'button',
+	              { onClick: this._addNewPlayer.bind(this) },
+	              'Add New Player'
+	            ) : null,
+	            _react2.default.createElement(
+	              'div',
+	              null,
+	              'Current Player: ',
+	              current.id
+	            ),
+	            _react2.default.createElement(_Players2.default, { players: players }),
+	            _react2.default.createElement(
+	              'div',
+	              { style: _style.gameStyles.commentry },
+	              messages.map(function (message, index) {
+	                return _react2.default.createElement(
+	                  'div',
+	                  { key: 'message_' + index },
+	                  message
+	                );
+	              })
+	            )
+	          )
+	        ) : _react2.default.createElement(_Results2.default, { players: all })
 	      );
 	    }
 	  }]);
@@ -23731,7 +23874,10 @@
 	  recordDiceLog: _GameActions.recordDiceLog,
 	  logMessage: _GameActions.logMessage,
 	  enableDice: _GameActions.enableDice,
-	  setPlayerPersistence: _GameActions.setPlayerPersistence
+	  setPlayerPersistence: _GameActions.setPlayerPersistence,
+	  endGame: _GameActions.endGame,
+	  addSnakeBite: _GameActions.addSnakeBite,
+	  addLadderHike: _GameActions.addLadderHike
 	})(Game);
 
 /***/ },
@@ -42126,6 +42272,12 @@
 	          lineCap: 'round',
 	          strokeWidth: 4,
 	          dash: [1, 5]
+	        }),
+	        _react2.default.createElement(_reactKonva.Circle, {
+	          x: startX,
+	          y: startY,
+	          radius: 5,
+	          fill: '#ffa09c'
 	        })
 	      );
 	    }
@@ -42301,6 +42453,402 @@
 	
 	  return Player;
 	}(_react2.default.Component);
+
+/***/ },
+/* 227 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(2);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _SortableResultItem = __webpack_require__(228);
+	
+	var _SortableResultItem2 = _interopRequireDefault(_SortableResultItem);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var Results = function (_React$Component) {
+	  _inherits(Results, _React$Component);
+	
+	  function Results(props) {
+	    _classCallCheck(this, Results);
+	
+	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Results).call(this, props));
+	
+	    _this.state = {
+	      draggingIndex: null,
+	      data: _this.props.players
+	    };
+	    return _this;
+	  }
+	
+	  _createClass(Results, [{
+	    key: 'updateState',
+	    value: function updateState(obj) {
+	      this.setState(obj);
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      var _this2 = this;
+	
+	      return _react2.default.createElement(
+	        'div',
+	        { className: 'list' },
+	        this.state.data.map(function (playerStat, i) {
+	          var id = playerStat.id;
+	          var pos = playerStat.pos;
+	          var color = playerStat.color;
+	          var path = playerStat.path;
+	          var diceLog = playerStat.diceLog;
+	          var snakeBites = playerStat.snakeBites;
+	          var ladderHikes = playerStat.ladderHikes;
+	
+	          return _react2.default.createElement(
+	            _SortableResultItem2.default,
+	            {
+	              key: i,
+	              updateState: _this2.updateState.bind(_this2),
+	              items: _this2.state.data,
+	              draggingIndex: _this2.state.draggingIndex,
+	              sortId: i,
+	              outline: 'list' },
+	            _react2.default.createElement(
+	              'p',
+	              null,
+	              'Player Id: ',
+	              id
+	            ),
+	            _react2.default.createElement(
+	              'p',
+	              null,
+	              'Dice thrown: ',
+	              diceLog.length
+	            ),
+	            _react2.default.createElement(
+	              'p',
+	              null,
+	              'Sixes rolled: ',
+	              diceLog.filter(function (dice) {
+	                return dice === 6;
+	              }).length
+	            ),
+	            _react2.default.createElement(
+	              'p',
+	              null,
+	              'Snake bites: ',
+	              snakeBites
+	            ),
+	            _react2.default.createElement(
+	              'p',
+	              null,
+	              'Ladder hikes: ',
+	              ladderHikes
+	            )
+	          );
+	        })
+	      );
+	    }
+	  }]);
+	
+	  return Results;
+	}(_react2.default.Component);
+	
+	exports.default = Results;
+
+/***/ },
+/* 228 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(2);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _reactSortable = __webpack_require__(229);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var SortableResultItem = function (_React$Component) {
+	  _inherits(SortableResultItem, _React$Component);
+	
+	  function SortableResultItem() {
+	    _classCallCheck(this, SortableResultItem);
+	
+	    return _possibleConstructorReturn(this, Object.getPrototypeOf(SortableResultItem).apply(this, arguments));
+	  }
+	
+	  _createClass(SortableResultItem, [{
+	    key: 'render',
+	    value: function render() {
+	      return _react2.default.createElement(
+	        'div',
+	        _extends({}, this.props, { className: 'list-item' }),
+	        this.props.children
+	      );
+	    }
+	  }]);
+	
+	  return SortableResultItem;
+	}(_react2.default.Component);
+	
+	exports.default = (0, _reactSortable.Sortable)(SortableResultItem);
+
+/***/ },
+/* 229 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _SortableComposition = __webpack_require__(230);
+	
+	Object.defineProperty(exports, 'Sortable', {
+	  enumerable: true,
+	  get: function get() {
+	    return _SortableComposition.SortableComposition;
+	  }
+	});
+
+/***/ },
+/* 230 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.swapArrayElements = swapArrayElements;
+	exports.isMouseBeyond = isMouseBeyond;
+	exports.SortableComposition = SortableComposition;
+	
+	var _react = __webpack_require__(2);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	/*** Helper functions - they are decoupled from component itself for testability */
+	
+	/**
+	 * @param {array} items
+	 * @param {number} indexFrom
+	 * @param {number} indexTo
+	 * @returns {array}
+	 */
+	function swapArrayElements(items, indexFrom, indexTo) {
+	  var item = items[indexTo];
+	  items[indexTo] = items[indexFrom];
+	  items[indexFrom] = item;
+	  return items;
+	}
+	
+	/**
+	 * @param {number} mousePos
+	 * @param {number} elementPos
+	 * @param {number} elementSize
+	 * @returns {boolean}
+	 */
+	function isMouseBeyond(mousePos, elementPos, elementSize) {
+	  //TODO refactor for UP
+	  var breakPoint = elementSize / 2; //break point is set to the middle line of element
+	  var mouseOverlap = mousePos - elementPos;
+	  return mouseOverlap > breakPoint;
+	}
+	
+	/*** Higher-order component - this component works like a factory for draggable items */
+	
+	function SortableComposition(Component) {
+	  var WrapperTagName = arguments.length <= 1 || arguments[1] === undefined ? "div" : arguments[1];
+	
+	
+	  var elementEdge = 0;
+	  var updateEdge = true;
+	
+	  return _react2.default.createClass({
+	
+	    proptypes: {
+	      items: _react2.default.PropTypes.array.isRequired,
+	      updateState: _react2.default.PropTypes.func.isRequired,
+	      sortId: _react2.default.PropTypes.number,
+	      outline: _react2.default.PropTypes.string.isRequired, // row | column
+	      draggingIndex: _react2.default.PropTypes.number
+	    },
+	
+	    getInitialState: function getInitialState() {
+	      return {
+	        draggingIndex: null
+	      };
+	    },
+	    componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
+	      this.setState({
+	        draggingIndex: nextProps.draggingIndex
+	      });
+	    },
+	    sortEnd: function sortEnd() {
+	      this.props.updateState({
+	        draggingIndex: null
+	      });
+	    },
+	    sortStart: function sortStart(e) {
+	      var draggingIndex = e.currentTarget.dataset.id;
+	      this.props.updateState({
+	        draggingIndex: draggingIndex
+	      });
+	      this.setState({
+	        draggingIndex: draggingIndex
+	      });
+	      if (e.dataTransfer !== undefined) {
+	        e.dataTransfer.setData('text', e.target);
+	      }
+	      updateEdge = true;
+	    },
+	    dragOver: function dragOver(e) {
+	      e.preventDefault();
+	      var mouseBeyond;
+	      var positionX, positionY;
+	      var height, topOffset;
+	      var items = this.props.items;
+	      var overEl = e.currentTarget; //underlying element //TODO: not working for touch
+	      var indexDragged = Number(overEl.dataset.id); //index of underlying element in the set DOM elements 
+	      var indexFrom = Number(this.state.draggingIndex);
+	
+	      height = overEl.getBoundingClientRect().height;
+	
+	      if (e.type === "dragover") {
+	        positionX = e.clientX;
+	        positionY = e.clientY;
+	        topOffset = overEl.offsetTop - overEl.scrollTop + overEl.clientTop;
+	      }
+	
+	      if (e.type === "touchmove") {
+	        positionX = e.touches[0].pageX;
+	        positionY = e.touches[0].pageY;
+	        if (updateEdge) {
+	          elementEdge = e.currentTarget.getBoundingClientRect().top;
+	          updateEdge = false;
+	        }
+	        e.currentTarget.style.top = positionY - elementEdge + "px";
+	        topOffset = elementEdge;
+	      }
+	
+	      if (this.props.outline === "list") {
+	        mouseBeyond = isMouseBeyond(positionY, topOffset, height);
+	      }
+	
+	      if (this.props.outline === "column") {
+	        mouseBeyond = isMouseBeyond(positionX, overEl.getBoundingClientRect().left, overEl.getBoundingClientRect().width);
+	      }
+	
+	      if (indexDragged !== indexFrom && mouseBeyond) {
+	        items = swapArrayElements(items, indexFrom, indexDragged);
+	        this.props.updateState({
+	          items: items, draggingIndex: indexDragged
+	        });
+	      }
+	    },
+	    isDragging: function isDragging() {
+	      return this.props.draggingIndex == this.props.sortId;
+	    },
+	    render: function render() {
+	      var draggingClassName = Component.displayName + "-dragging";
+	      return _react2.default.createElement(
+	        WrapperTagName,
+	        { className: this.isDragging() ? draggingClassName : "" },
+	        _react2.default.createElement(Component, {
+	          draggable: true,
+	          onDragOver: this.dragOver,
+	          onDragStart: this.sortStart,
+	          onDragEnd: this.sortEnd,
+	          onTouchStart: this.sortStart,
+	          onTouchMove: this.dragOver,
+	          onTouchEnd: this.sortEnd,
+	          children: this.props.children,
+	          'data-id': this.props.sortId })
+	      );
+	    }
+	  });
+	}
+
+/***/ },
+/* 231 */
+/***/ function(module, exports) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var gameStyles = exports.gameStyles = {
+	  main: {
+	    margin: 0,
+	    padding: 0,
+	    fontSize: 14,
+	    color: '#2c475d',
+	    fontFamily: 'sans-serif'
+	  },
+	  gameBlock: {
+	    display: 'inline-block',
+	    verticalAlign: 'top'
+	  },
+	  dataBlock: {
+	    display: 'inline-block',
+	    verticalAlign: 'top',
+	    marginLeft: 32
+	  },
+	  cta: {
+	    padding: '16px 32px',
+	    color: '#fff',
+	    borderRadius: 6,
+	    background: 'red',
+	    margin: '16px',
+	    border: 'none',
+	    outline: 'none'
+	  },
+	  commentry: {
+	    height: 400,
+	    border: '1px solid #ccc',
+	    padding: 16,
+	    overflowY: 'auto',
+	    borderRadius: 6,
+	    boxShadow: '0 3px 12px rgba(0, 0, 0, 0.15)',
+	    marginTop: 16
+	  }
+	};
 
 /***/ }
 /******/ ]);

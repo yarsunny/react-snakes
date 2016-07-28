@@ -6,17 +6,15 @@ import CanvasPlayer from './Canvas.Player';
 import CanvasSnake from './Canvas.Snake';
 import CanvasLadder from './Canvas.Ladder';
 import Players from './Players';
+import Results from './Results';
 import {
-  addNewPlayer,
-  getRollDiceResult,
-  movePlayer,
-  changePlayer,
-  changePlayerPositionInBox,
-  recordDiceLog,
-  logMessage,
-  enableDice,
-  setPlayerPersistence
+  addNewPlayer, getRollDiceResult, movePlayer, changePlayer,
+  changePlayerPositionInBox, recordDiceLog, logMessage,
+  enableDice, setPlayerPersistence, endGame,
+  addSnakeBite, addLadderHike
 } from '../actions/GameActions';
+import { GAME_ON, MAX_PLAYERS } from '../config/variables';
+import { gameStyles } from '../styles/style.game';
 
 export default class Game extends React.Component {
 
@@ -30,19 +28,27 @@ export default class Game extends React.Component {
     const newPos = pos + diceResult;
 
     this.props.recordDiceLog(diceResult);
-    this.props.movePlayer(newPos);
-    this.props.logMessage(`Player ${id} moved to block ${newPos}`);
-
-    this._checkSnakeBiteorLadderJump(newPos);
-    this._resolveOccupancyOverload();
-
-    if (diceResult === 6 && persistence <= 3) {
-      this.props.logMessage(`SIX SIX SIX ${persistence}`);
-      this.props.enableDice();
-      this.props.setPlayerPersistence(persistence + 1);
-    } else {
+    if (newPos > 100) {
+      this.props.logMessage(`Hang in there Player ${id}`);
       this.props.changePlayer();
-      this.props.setPlayerPersistence(1);
+    } else if (newPos == 100) {
+      this.props.movePlayer(newPos);
+      this.props.endGame();
+    } else {
+      this.props.movePlayer(newPos);
+      this.props.logMessage(`Player ${id} moved to block ${newPos}`);
+
+      this._checkSnakeBiteorLadderJump(newPos);
+      this._resolveOccupancyOverload();
+
+      if (diceResult === 6 && persistence < 3) {
+        this.props.logMessage(`SIX SIX SIX ${persistence}`);
+        this.props.enableDice();
+        this.props.setPlayerPersistence(persistence + 1);
+      } else {
+        this.props.changePlayer();
+        this.props.setPlayerPersistence(1);
+      }
     }
   }
 
@@ -55,6 +61,7 @@ export default class Game extends React.Component {
       /* busted */
       const snake = snakes.filter((s) => (s.startPos === playerPos))[0];
       this.props.movePlayer(snake.endPos);
+      this.props.addSnakeBite();
       this.props.logMessage(`Player ${id} got BUSTED, moved to block ${snake.endPos}`);
     }
 
@@ -62,6 +69,7 @@ export default class Game extends React.Component {
       /* got wings */
       const ladder = ladders.filter((l) => (l.startPos === playerPos))[0];
       this.props.movePlayer(ladder.endPos);
+      this.props.addLadderHike();
       this.props.logMessage(`Player ${id} found a redbull, moved to block ${ladder.endPos}`);
     }
 
@@ -88,61 +96,79 @@ export default class Game extends React.Component {
 
   render () {
     const {
+      status,
       dice: { disabled: isDiceDisabled },
       grid: { width, height, layout }, grid,
-      players: { all, current }, players,
+      players: { all, current, count: playerCount }, players,
       snakes, ladders, messages
     } = this.props.game;
 
     return (
-      <div>
-        <div>
-          <button disabled={isDiceDisabled} onClick={this._rollDice.bind(this)}>Roll Dice</button>
-          <button onClick={this._addNewPlayer.bind(this)}>Add New Player</button>
-          <div>Current Player: {current.id}</div>
+      <div style={gameStyles.main}>
+        {
+          status === GAME_ON
+          ?
           <div>
-          {
-            messages.map((message, index) => <div key={`message_${index}`}>{message}</div>)
-          }
+            <div style={gameStyles.gameBlock}>
+              <Stage
+                width={width}
+                height={height}>
+                <CanvasGrid grid={grid} />
+                { /* players */
+                  all.map((p, index) => {
+                    return (
+                      <CanvasPlayer
+                        key={`canvasPlayer_${index}`}
+                        player={p}
+                        current={current}
+                        />
+                    )
+                  })
+                }
+                { /* snakes */
+                  snakes.map((s, index) => {
+                    return (
+                      <CanvasSnake
+                        key={`canvasSnake_${index}`}
+                        snake={s}
+                        />
+                    )
+                  })
+                }
+                { /* ladders */
+                  ladders.map((l, index) => {
+                    return (
+                      <CanvasLadder
+                        key={`canvasLadder_${index}`}
+                        ladder={l}
+                        />
+                    )
+                  })
+                }
+              </Stage>
+            </div>
+            <div style={gameStyles.dataBlock}>
+              <button disabled={isDiceDisabled} onClick={this._rollDice.bind(this)} style={gameStyles.cta}>Roll Dice</button>
+              <button onClick={() => {this.props.endGame()}} style={gameStyles.cta}>End Game</button>
+              {
+                playerCount < MAX_PLAYERS
+                ?
+                <button onClick={this._addNewPlayer.bind(this)}>Add New Player</button>
+                : null
+              }
+              <div>Current Player: {current.id}</div>
+              <Players players={players} />
+              <div style={gameStyles.commentry}>
+              {
+                messages.map((message, index) => <div key={`message_${index}`}>{message}</div>)
+              }
+              </div>
+            </div>
           </div>
-          <Players players={players} />
-        </div>
-        <Stage
-          width={width}
-          height={height}>
-          <CanvasGrid grid={grid} />
-          { /* players */
-            all.map((p, index) => {
-              return (
-                <CanvasPlayer
-                  key={`canvasPlayer_${index}`}
-                  player={p}
-                  current={current}
-                  />
-              )
-            })
-          }
-          { /* snakes */
-            snakes.map((s, index) => {
-              return (
-                <CanvasSnake
-                  key={`canvasSnake_${index}`}
-                  snake={s}
-                  />
-              )
-            })
-          }
-          { /* ladders */
-            ladders.map((l, index) => {
-              return (
-                <CanvasLadder
-                  key={`canvasLadder_${index}`}
-                  ladder={l}
-                  />
-              )
-            })
-          }
-        </Stage>
+          :
+          <Results players={all} />
+
+        }
       </div>
     );
   }
@@ -163,5 +189,8 @@ export default connect(mapStateToProps, {
   recordDiceLog,
   logMessage,
   enableDice,
-  setPlayerPersistence
+  setPlayerPersistence,
+  endGame,
+  addSnakeBite,
+  addLadderHike
 })(Game);
