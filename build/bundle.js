@@ -23194,7 +23194,7 @@
 	      case _GameActions.LOG_MESSAGE:
 	        return {
 	          v: _extends({}, state, {
-	            messages: [].concat(_toConsumableArray(state.messages), [action.message])
+	            messages: [action.message].concat(_toConsumableArray(state.messages))
 	          })
 	        };
 	
