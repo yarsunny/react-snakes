@@ -9,9 +9,8 @@ import { getPlayerCoordinates } from '../config/utils';
 export default class CanvasPlayer extends React.Component {
 
   render () {
-    const { layout, player: { color, id, pos, boxPosition }, current: { id: currentPlayerId } } = this.props;
-    const { x, y } = getPlayerCoordinates(layout, pos, boxPosition);
-
+    const { player: { color, id, pos, boxPosition }, current: { id: currentPlayerId } } = this.props;
+    const { x, y } = getPlayerCoordinates(pos, boxPosition);
     const isCurrent = !!(id === currentPlayerId);
 
     return (
@@ -20,10 +19,12 @@ export default class CanvasPlayer extends React.Component {
           {
             ({x, y}) => (
               <Circle
-                x = { x }
-                y = { y }
-                radius = { 10 }
-                fill = {color}
+                x={x}
+                y={y}
+                radius={10}
+                fill={color}
+                stroke={isCurrent ? '#666666': '#ffffff'}
+                strokeWidth={isCurrent ? 2 : 0}
                 />
             )
           }

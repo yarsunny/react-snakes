@@ -22981,8 +22981,6 @@
 	  value: true
 	});
 	
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
-	
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 	
 	exports.game = game;
@@ -22995,12 +22993,14 @@
 	
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 	
+	var firstPlayerColor = (0, _utils.getRandomColor)();
 	var initialState = {
 	  dice: {
 	    disabled: false
 	  },
+	  messages: ['Welcome to the game'],
 	  grid: {
-	    layout: _constructGrid(),
+	    layout: (0, _utils.getLayout)(),
 	    width: _variables.GRID_WIDTH,
 	    height: _variables.GRID_HEIGHT,
 	    occupancy: _initializeOccupancy(),
@@ -23009,12 +23009,63 @@
 	      width: _variables.BOX_WIDTH
 	    }
 	  },
+	  snakes: [{
+	    id: 1,
+	    startPos: 17,
+	    endPos: 7
+	  }, {
+	    id: 2,
+	    startPos: 52,
+	    endPos: 29
+	  }, {
+	    id: 3,
+	    startPos: 57,
+	    endPos: 38
+	  }, {
+	    id: 4,
+	    startPos: 88,
+	    endPos: 18
+	  }, {
+	    id: 5,
+	    startPos: 93,
+	    endPos: 70
+	  }, {
+	    id: 6,
+	    startPos: 97,
+	    endPos: 79
+	  }],
+	  ladders: [{
+	    id: 1,
+	    startPos: 3,
+	    endPos: 21
+	  }, {
+	    id: 2,
+	    startPos: 8,
+	    endPos: 30
+	  }, {
+	    id: 3,
+	    startPos: 28,
+	    endPos: 84
+	  }, {
+	    id: 4,
+	    startPos: 58,
+	    endPos: 77
+	  }, {
+	    id: 5,
+	    startPos: 80,
+	    endPos: 99
+	  }, {
+	    id: 6,
+	    startPos: 90,
+	    endPos: 91
+	  }],
 	  players: {
 	    count: 1,
+	    persistence: 1,
 	    current: {
 	      id: 1,
 	      pos: 1,
-	      color: '#675652',
+	      color: firstPlayerColor,
 	      path: [1],
 	      diceLog: [],
 	      boxPosition: -1 //center
@@ -23022,7 +23073,7 @@
 	    all: [{
 	      id: 1,
 	      pos: 1,
-	      color: '#675652',
+	      color: firstPlayerColor,
 	      path: [1],
 	      diceLog: [],
 	      boxPosition: -1 //center
@@ -23033,133 +23084,120 @@
 	function game() {
 	  var state = arguments.length <= 0 || arguments[0] === undefined ? initialState : arguments[0];
 	  var action = arguments[1];
-	  var nextPlayer;
 	
-	  var _ret = function () {
 	
-	    switch (action.type) {
-	      case _GameActions.ADD_NEW_PLAYER:
-	        var newPlayer = _generateNewPlayer(state.players.count);
+	  switch (action.type) {
+	    case _GameActions.ADD_NEW_PLAYER:
+	      var newPlayer = _generateNewPlayer(state.players.count);
 	
-	        return {
-	          v: _extends({}, state, {
-	            grid: _extends({}, state.grid, {
-	              occupancy: _extends({}, state.grid.occupancy, {
-	                1: state.grid.occupancy[1] + 1
-	              })
-	            }),
-	            players: _extends({}, state.players, {
-	              all: [].concat(_toConsumableArray(state.players.all), [newPlayer]),
-	              count: state.players.count + 1
-	            })
+	      return _extends({}, state, {
+	        grid: _extends({}, state.grid, {
+	          occupancy: _extends({}, state.grid.occupancy, {
+	            1: state.grid.occupancy[1] + 1
 	          })
-	        };
+	        }),
+	        players: _extends({}, state.players, {
+	          all: [].concat(_toConsumableArray(state.players.all), [newPlayer]),
+	          count: state.players.count + 1
+	        })
+	      });
 	
-	      case _GameActions.MOVE_PLAYER:
-	        var newPos = state.players.current.pos + action.diceResult;
-	        var newOccupancy = {};
-	        newOccupancy[newPos] = state.grid.occupancy[newPos];
-	        newOccupancy[state.players.current.pos] = state.grid.occupancy[state.players.current.pos] - 1;
+	    case _GameActions.MOVE_PLAYER:
+	      var newOccupancy = {};
+	      newOccupancy[action.newPos] = state.grid.occupancy[action.newPos] + 1;
+	      newOccupancy[state.players.current.pos] = state.grid.occupancy[state.players.current.pos] - 1;
 	
-	        return {
-	          v: _extends({}, state, {
-	            dice: _extends({}, state.dice, {
-	              disabled: true
-	            }),
-	            grid: _extends({}, state.grid, {
-	              occupancy: _extends({}, state.grid.occupancy, newOccupancy)
-	            }),
-	            players: _extends({}, state.players, {
-	              all: state.players.all.map(function (p) {
-	                if (p.id === state.players.current.id) {
-	                  p.pos = newPos;
-	                  p.boxPosition = -1;
-	                }
-	                return p;
-	              }),
-	              current: _extends({}, state.players.current, {
-	                pos: newPos,
-	                boxPosition: -1,
-	                path: [].concat(_toConsumableArray(state.players.current.path), [newPos]),
-	                diceLog: [].concat(_toConsumableArray(state.players.current.diceLog), [action.diceResult])
-	              })
-	            })
+	      return _extends({}, state, {
+	        dice: _extends({}, state.dice, {
+	          disabled: true
+	        }),
+	        grid: _extends({}, state.grid, {
+	          occupancy: _extends({}, state.grid.occupancy, newOccupancy)
+	        }),
+	        players: _extends({}, state.players, {
+	          all: state.players.all.map(function (p) {
+	            if (p.id === state.players.current.id) {
+	              p.pos = action.newPos;
+	              p.boxPosition = -1;
+	              p.path = [].concat(_toConsumableArray(p.path), [action.newPos]);
+	            }
+	            return p;
+	          }),
+	          current: _extends({}, state.players.current, {
+	            pos: action.newPos,
+	            boxPosition: -1,
+	            path: [].concat(_toConsumableArray(state.players.current.path), [action.newPos])
 	          })
-	        };
+	        })
+	      });
 	
-	      case _GameActions.CHANGE_PLAYER:
-	        nextPlayer = _getNextPlayer(state.players);
+	    case _GameActions.CHANGE_PLAYER:
+	      var nextPlayer = _getNextPlayer(state.players);
+	      return _extends({}, state, {
+	        dice: {
+	          disabled: false
+	        },
+	        players: _extends({}, state.players, {
+	          current: nextPlayer
+	        })
+	      });
 	
-	        return {
-	          v: _extends({}, state, {
-	            dice: {
-	              disabled: false
-	            },
-	            players: _extends({}, state.players, {
-	              current: nextPlayer
-	            })
+	    case _GameActions.RECORD_DICE_LOG:
+	      return _extends({}, state, {
+	        players: _extends({}, state.players, {
+	          all: state.players.all.map(function (p) {
+	            if (p.id === state.players.current.id) {
+	              p.diceLog = [].concat(_toConsumableArray(p.diceLog), [action.diceResult]);
+	            }
+	            return p;
+	          }),
+	          current: _extends({}, state.players.current, {
+	            diceLog: [].concat(_toConsumableArray(state.players.current.diceLog), [action.diceResult])
 	          })
-	        };
+	        })
+	      });
 	
-	      case _GameActions.CHANGE_PLAYER_POSITION_IN_BOX:
-	        var curPlayer = state.players.current.id === action.playerId ? _extends({}, state.players.current, { boxPosition: action.newBoxPosition }) : state.players.current;
-	        return {
-	          v: _extends({}, state, {
-	            players: _extends({}, state.players, {
-	              all: state.players.all.map(function (p) {
-	                if (p.id === action.playerId) {
-	                  p.boxPosition = action.newBoxPosition;
-	                }
-	                return p;
-	              }),
-	              current: curPlayer
-	            })
-	          })
-	        };
+	    case _GameActions.CHANGE_PLAYER_POSITION_IN_BOX:
+	      var curPlayer = state.players.current.id === action.playerId ? _extends({}, state.players.current, { boxPosition: action.newBoxPosition }) : state.players.current;
+	      return _extends({}, state, {
+	        players: _extends({}, state.players, {
+	          all: state.players.all.map(function (p) {
+	            if (p.id === action.playerId) {
+	              p.boxPosition = action.newBoxPosition;
+	            }
+	            return p;
+	          }),
+	          current: curPlayer
+	        })
+	      });
 	
-	      default:
-	        return {
-	          v: state
-	        };
-	    }
-	  }();
+	    case _GameActions.LOG_MESSAGE:
+	      return _extends({}, state, {
+	        messages: [].concat(_toConsumableArray(state.messages), [action.message])
+	      });
 	
-	  if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+	    case _GameActions.SET_PLAYER_PERSISTENCE:
+	      return _extends({}, state, {
+	        players: _extends({}, state.players, {
+	          persistence: action.persistence
+	        })
+	      });
+	
+	    case _GameActions.ENABLE_DICE:
+	      return _extends({}, state, {
+	        dice: _extends({}, state.dice, {
+	          disabled: false
+	        })
+	      });
+	
+	    default:
+	      return state;
+	  }
 	}
 	
 	/*
 	 * Private functions
 	 */
-	function _constructGrid() {
-	  var grid = {};
-	  var oddRows = [1, 3, 5, 7, 9],
-	      evenRows = [0, 2, 4, 6, 8];
-	
-	  var _loop = function _loop(col) {
-	    //even rows
-	    evenRows.map(function (row) {
-	      grid[col + 10 * row] = {
-	        x: (col - 1) * _variables.BOX_WIDTH + _variables.BOX_WIDTH / 2,
-	        y: _variables.GRID_HEIGHT - (row * _variables.BOX_HEIGHT + _variables.BOX_HEIGHT / 2),
-	        id: col + 10 * row
-	      };
-	    });
-	
-	    //odd rows
-	    oddRows.map(function (row) {
-	      grid[col + 10 * row] = {
-	        x: _variables.GRID_WIDTH - ((col - 1) * _variables.BOX_WIDTH + _variables.BOX_WIDTH / 2),
-	        y: _variables.GRID_HEIGHT - (row * _variables.BOX_HEIGHT + _variables.BOX_HEIGHT / 2),
-	        id: col + 10 * row
-	      };
-	    });
-	  };
-	
-	  for (var col = 1; col <= 10; col++) {
-	    _loop(col);
-	  }
-	  return grid;
-	}
 	
 	function _generateNewPlayer(curCount) {
 	  return {
@@ -23215,15 +23253,50 @@
 	  value: true
 	});
 	exports.getRandomColor = getRandomColor;
+	exports.getLayout = getLayout;
 	exports.getPlayerCoordinates = getPlayerCoordinates;
 	
 	var _variables = __webpack_require__(200);
 	
+	var colorIndex = 0;
 	function getRandomColor() {
-	  return '#' + Math.random().toString(16).substr(-6);
+	  var colorPalette = ['#007ae1', '#ff2d55', '#4cd964', '#ff9500'];
+	  return colorPalette[colorIndex++ % 4];
 	};
 	
-	function getPlayerCoordinates(layout, pos, boxPosition) {
+	function getLayout() {
+	  var layout = {};
+	  var oddRows = [1, 3, 5, 7, 9],
+	      evenRows = [0, 2, 4, 6, 8];
+	
+	  var _loop = function _loop(col) {
+	    //even rows
+	    evenRows.map(function (row) {
+	      layout[col + 10 * row] = {
+	        x: (col - 1) * _variables.BOX_WIDTH + _variables.BOX_WIDTH / 2,
+	        y: _variables.GRID_HEIGHT - (row * _variables.BOX_HEIGHT + _variables.BOX_HEIGHT / 2),
+	        id: col + 10 * row
+	      };
+	    });
+	
+	    //odd rows
+	    oddRows.map(function (row) {
+	      layout[col + 10 * row] = {
+	        x: _variables.GRID_WIDTH - ((col - 1) * _variables.BOX_WIDTH + _variables.BOX_WIDTH / 2),
+	        y: _variables.GRID_HEIGHT - (row * _variables.BOX_HEIGHT + _variables.BOX_HEIGHT / 2),
+	        id: col + 10 * row
+	      };
+	    });
+	  };
+	
+	  for (var col = 1; col <= 10; col++) {
+	    _loop(col);
+	  }
+	  return layout;
+	}
+	
+	function getPlayerCoordinates(pos, boxPosition) {
+	  var layout = getLayout();
 	  var x = layout[pos].x;
 	  var y = layout[pos].y;
 	
@@ -23278,10 +23351,18 @@
 	exports.movePlayer = movePlayer;
 	exports.changePlayer = changePlayer;
 	exports.changePlayerPositionInBox = changePlayerPositionInBox;
+	exports.recordDiceLog = recordDiceLog;
+	exports.logMessage = logMessage;
+	exports.setPlayerPersistence = setPlayerPersistence;
+	exports.enableDice = enableDice;
 	var ADD_NEW_PLAYER = exports.ADD_NEW_PLAYER = 'ADD_NEW_PLAYER';
 	var MOVE_PLAYER = exports.MOVE_PLAYER = 'MOVE_PLAYER';
 	var CHANGE_PLAYER = exports.CHANGE_PLAYER = 'CHANGE_PLAYER';
 	var CHANGE_PLAYER_POSITION_IN_BOX = exports.CHANGE_PLAYER_POSITION_IN_BOX = 'CHANGE_PLAYER_POSITION_IN_BOX';
+	var RECORD_DICE_LOG = exports.RECORD_DICE_LOG = 'RECORD_DICE_LOG';
+	var LOG_MESSAGE = exports.LOG_MESSAGE = 'LOG_MESSAGE';
+	var SET_PLAYER_PERSISTENCE = exports.SET_PLAYER_PERSISTENCE = 'SET_PLAYER_PERSISTENCE';
+	var ENABLE_DICE = exports.ENABLE_DICE = 'ENABLE_DICE';
 	
 	function addNewPlayer() {
 	  return {
@@ -23295,16 +23376,18 @@
 	  return Math.floor(Math.random() * (max - min + 1)) + min;
 	}
 	
-	function movePlayer(diceResult) {
+	function movePlayer(newPos) {
 	  return {
 	    type: MOVE_PLAYER,
-	    diceResult: diceResult
+	    newPos: newPos
 	  };
 	}
 	
 	function changePlayer() {
-	  return {
-	    type: CHANGE_PLAYER
+	  return function (dispatch) {
+	    setTimeout(function () {
+	      dispatch({ type: CHANGE_PLAYER });
+	    }, 1000);
 	  };
 	}
 	
@@ -23313,6 +23396,33 @@
 	    type: CHANGE_PLAYER_POSITION_IN_BOX,
 	    playerId: playerId,
 	    newBoxPosition: newBoxPosition
+	  };
+	}
+	
+	function recordDiceLog(diceResult) {
+	  return {
+	    type: RECORD_DICE_LOG,
+	    recordDiceLog: recordDiceLog
+	  };
+	}
+	
+	function logMessage(message) {
+	  return {
+	    type: LOG_MESSAGE,
+	    message: message
+	  };
+	}
+	
+	function setPlayerPersistence(persistence) {
+	  return {
+	    type: SET_PLAYER_PERSISTENCE,
+	    persistence: persistence
+	  };
+	}
+	
+	function enableDice() {
+	  return {
+	    type: ENABLE_DICE
 	  };
 	}
 
@@ -23344,13 +23454,19 @@
 	
 	var _Canvas4 = _interopRequireDefault(_Canvas3);
 	
-	var _Players = __webpack_require__(224);
+	var _Canvas5 = __webpack_require__(224);
+	
+	var _Canvas6 = _interopRequireDefault(_Canvas5);
+	
+	var _Canvas7 = __webpack_require__(225);
+	
+	var _Canvas8 = _interopRequireDefault(_Canvas7);
+	
+	var _Players = __webpack_require__(226);
 	
 	var _Players2 = _interopRequireDefault(_Players);
 	
 	var _GameActions = __webpack_require__(202);
-	
-	var _utils = __webpack_require__(201);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -23372,110 +23488,157 @@
 	  _createClass(Game, [{
 	    key: '_rollDice',
 	    value: function _rollDice() {
-	      var _this2 = this;
-	
-	      var _props$game$players$c = this.props.game.players.current;
-	      var currentPos = _props$game$players$c.pos;
+	      var _props$game$players = this.props.game.players;
+	      var _props$game$players$c = _props$game$players.current;
 	      var id = _props$game$players$c.id;
+	      var pos = _props$game$players$c.pos;
+	      var persistence = _props$game$players.persistence;
 	
-	      this.props.movePlayer((0, _GameActions.getRollDiceResult)());
+	      var diceResult = (0, _GameActions.getRollDiceResult)();
+	      var newPos = pos + diceResult;
+	
+	      this.props.recordDiceLog(diceResult);
+	      this.props.movePlayer(newPos);
+	      this.props.logMessage('Player ' + id + ' moved to block ' + newPos);
+	
+	      this._checkSnakeBiteorLadderJump(newPos);
 	      this._resolveOccupancyOverload();
-	      setTimeout(function () {
-	        _this2.props.changePlayer();
-	      }, 2000);
+	
+	      if (diceResult === 6 && persistence <= 3) {
+	        this.props.logMessage('SIX SIX SIX ' + persistence);
+	        this.props.enableDice();
+	        this.props.setPlayerPersistence(persistence + 1);
+	      } else {
+	        this.props.changePlayer();
+	        this.props.setPlayerPersistence(1);
+	      }
+	    }
+	  }, {
+	    key: '_checkSnakeBiteorLadderJump',
+	    value: function _checkSnakeBiteorLadderJump(playerPos) {
+	      var _props$game = this.props.game;
+	      var snakes = _props$game.snakes;
+	      var ladders = _props$game.ladders;
+	      var id = _props$game.players.current.id;
+	
+	      var cops = snakes.map(function (s) {
+	        return s.startPos;
+	      });
+	      var redbull = ladders.map(function (l) {
+	        return l.startPos;
+	      });
+	
+	      if (cops.indexOf(playerPos) !== -1) {
+	        /* busted */
+	        var snake = snakes.filter(function (s) {
+	          return s.startPos === playerPos;
+	        })[0];
+	        this.props.movePlayer(snake.endPos);
+	        this.props.logMessage('Player ' + id + ' got BUSTED, moved to block ' + snake.endPos);
+	      }
+	
+	      if (redbull.indexOf(playerPos) !== -1) {
+	        /* got wings */
+	        var ladder = ladders.filter(function (l) {
+	          return l.startPos === playerPos;
+	        })[0];
+	        this.props.movePlayer(ladder.endPos);
+	        this.props.logMessage('Player ' + id + ' found a redbull, moved to block ' + ladder.endPos);
+	      }
 	    }
 	  }, {
 	    key: '_resolveOccupancyOverload',
 	    value: function _resolveOccupancyOverload() {
-	      var _this3 = this;
+	      var _this2 = this;
 	
-	      var _props$game = this.props.game;
-	      var occupancy = _props$game.grid.occupancy;
-	      var all = _props$game.players.all;
+	      setTimeout(function () {
+	        var _props$game2 = _this2.props.game;
+	        var occupancy = _props$game2.grid.occupancy;
+	        var all = _props$game2.players.all;
 	
-	      var boxesWithMoreThanOneOccupants = Object.keys(occupancy).filter(function (box) {
-	        return occupancy[box] > 1;
-	      });
-	      var _iteratorNormalCompletion = true;
-	      var _didIteratorError = false;
-	      var _iteratorError = undefined;
+	        var boxesWithMoreThanOneOccupants = Object.keys(occupancy).filter(function (box) {
+	          return occupancy[box] > 1;
+	        });
+	        var _iteratorNormalCompletion = true;
+	        var _didIteratorError = false;
+	        var _iteratorError = undefined;
 	
-	      try {
-	        var _loop = function _loop() {
-	          var box = _step.value;
-	
-	          var playersWithinBox = all.filter(function (player) {
-	            return player.pos == box;
-	          });
-	          var count = 0;
-	          var _iteratorNormalCompletion2 = true;
-	          var _didIteratorError2 = false;
-	          var _iteratorError2 = undefined;
-	
-	          try {
-	            for (var _iterator2 = playersWithinBox[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-	              var player = _step2.value;
-	
-	              _this3.props.changePlayerPositionInBox(player.id, count++);
-	            }
-	          } catch (err) {
-	            _didIteratorError2 = true;
-	            _iteratorError2 = err;
-	          } finally {
-	            try {
-	              if (!_iteratorNormalCompletion2 && _iterator2.return) {
-	                _iterator2.return();
-	              }
-	            } finally {
-	              if (_didIteratorError2) {
-	                throw _iteratorError2;
-	              }
-	            }
-	          }
-	        };
-	
-	        for (var _iterator = boxesWithMoreThanOneOccupants[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          _loop();
-	        }
-	      } catch (err) {
-	        _didIteratorError = true;
-	        _iteratorError = err;
-	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion && _iterator.return) {
-	            _iterator.return();
+	          var _loop = function _loop() {
+	            var box = _step.value;
+	
+	            var playersWithinBox = all.filter(function (player) {
+	              return player.pos == box;
+	            });
+	            var count = 0;
+	            var _iteratorNormalCompletion2 = true;
+	            var _didIteratorError2 = false;
+	            var _iteratorError2 = undefined;
+	
+	            try {
+	              for (var _iterator2 = playersWithinBox[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	                var player = _step2.value;
+	
+	                _this2.props.changePlayerPositionInBox(player.id, count++);
+	              }
+	            } catch (err) {
+	              _didIteratorError2 = true;
+	              _iteratorError2 = err;
+	            } finally {
+	              try {
+	                if (!_iteratorNormalCompletion2 && _iterator2.return) {
+	                  _iterator2.return();
+	                }
+	              } finally {
+	                if (_didIteratorError2) {
+	                  throw _iteratorError2;
+	                }
+	              }
+	            }
+	          };
+	
+	          for (var _iterator = boxesWithMoreThanOneOccupants[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	            _loop();
 	          }
+	        } catch (err) {
+	          _didIteratorError = true;
+	          _iteratorError = err;
 	        } finally {
-	          if (_didIteratorError) {
-	            throw _iteratorError;
+	          try {
+	            if (!_iteratorNormalCompletion && _iterator.return) {
+	              _iterator.return();
+	            }
+	          } finally {
+	            if (_didIteratorError) {
+	              throw _iteratorError;
+	            }
 	          }
 	        }
-	      }
+	      }, 400);
 	    }
 	  }, {
 	    key: '_addNewPlayer',
 	    value: function _addNewPlayer() {
-	      var _this4 = this;
-	
 	      this.props.addNewPlayer();
-	      setTimeout(function () {
-	        _this4._resolveOccupancyOverload();
-	      }, 400);
+	      this._resolveOccupancyOverload();
 	    }
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      var _props$game2 = this.props.game;
-	      var isDiceDisabled = _props$game2.dice.disabled;
-	      var _props$game2$grid = _props$game2.grid;
-	      var width = _props$game2$grid.width;
-	      var height = _props$game2$grid.height;
-	      var layout = _props$game2$grid.layout;
-	      var grid = _props$game2.grid;
-	      var _props$game2$players = _props$game2.players;
-	      var all = _props$game2$players.all;
-	      var current = _props$game2$players.current;
-	      var players = _props$game2.players;
+	      var _props$game3 = this.props.game;
+	      var isDiceDisabled = _props$game3.dice.disabled;
+	      var _props$game3$grid = _props$game3.grid;
+	      var width = _props$game3$grid.width;
+	      var height = _props$game3$grid.height;
+	      var layout = _props$game3$grid.layout;
+	      var grid = _props$game3.grid;
+	      var _props$game3$players = _props$game3.players;
+	      var all = _props$game3$players.all;
+	      var current = _props$game3$players.current;
+	      var players = _props$game3.players;
+	      var snakes = _props$game3.snakes;
+	      var ladders = _props$game3.ladders;
+	      var messages = _props$game3.messages;
 	
 	
 	      return _react2.default.createElement(
@@ -23500,6 +23663,17 @@
 	            'Current Player: ',
 	            current.id
 	          ),
+	          _react2.default.createElement(
+	            'div',
+	            null,
+	            messages.map(function (message, index) {
+	              return _react2.default.createElement(
+	                'div',
+	                { key: 'message_' + index },
+	                message
+	              );
+	            })
+	          ),
 	          _react2.default.createElement(_Players2.default, { players: players })
 	        ),
 	        _react2.default.createElement(
@@ -23508,12 +23682,26 @@
 	            width: width,
 	            height: height },
 	          _react2.default.createElement(_Canvas2.default, { grid: grid }),
+	          /* players */
 	          all.map(function (p, index) {
 	            return _react2.default.createElement(_Canvas4.default, {
-	              key: 'canvasplayer_' + index,
+	              key: 'canvasPlayer_' + index,
 	              player: p,
-	              current: current,
-	              layout: layout
+	              current: current
+	            });
+	          }),
+	          /* snakes */
+	          snakes.map(function (s, index) {
+	            return _react2.default.createElement(_Canvas6.default, {
+	              key: 'canvasSnake_' + index,
+	              snake: s
+	            });
+	          }),
+	          /* ladders */
+	          ladders.map(function (l, index) {
+	            return _react2.default.createElement(_Canvas8.default, {
+	              key: 'canvasLadder_' + index,
+	              ladder: l
 	            });
 	          })
 	        )
@@ -23539,7 +23727,11 @@
 	  addNewPlayer: _GameActions.addNewPlayer,
 	  movePlayer: _GameActions.movePlayer,
 	  changePlayer: _GameActions.changePlayer,
-	  changePlayerPositionInBox: _GameActions.changePlayerPositionInBox
+	  changePlayerPositionInBox: _GameActions.changePlayerPositionInBox,
+	  recordDiceLog: _GameActions.recordDiceLog,
+	  logMessage: _GameActions.logMessage,
+	  enableDice: _GameActions.enableDice,
+	  setPlayerPersistence: _GameActions.setPlayerPersistence
 	})(Game);
 
 /***/ },
@@ -40355,7 +40547,6 @@
 	    key: 'render',
 	    value: function render() {
 	      var _props = this.props;
-	      var layout = _props.layout;
 	      var _props$player = _props.player;
 	      var color = _props$player.color;
 	      var id = _props$player.id;
@@ -40363,11 +40554,10 @@
 	      var boxPosition = _props$player.boxPosition;
 	      var currentPlayerId = _props.current.id;
 	
-	      var _getPlayerCoordinates = (0, _utils.getPlayerCoordinates)(layout, pos, boxPosition);
+	      var _getPlayerCoordinates = (0, _utils.getPlayerCoordinates)(pos, boxPosition);
 	
 	      var x = _getPlayerCoordinates.x;
 	      var y = _getPlayerCoordinates.y;
-	
 	
 	      var isCurrent = !!(id === currentPlayerId);
 	
@@ -40384,7 +40574,9 @@
 	              x: x,
 	              y: y,
 	              radius: 10,
-	              fill: color
+	              fill: color,
+	              stroke: isCurrent ? '#666666' : '#ffffff',
+	              strokeWidth: isCurrent ? 2 : 0
 	            });
 	          }
 	        )
@@ -41872,6 +42064,161 @@
 
 /***/ },
 /* 224 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(2);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _reactKonva = __webpack_require__(204);
+	
+	var _utils = __webpack_require__(201);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var CanvasSnake = function (_React$Component) {
+	  _inherits(CanvasSnake, _React$Component);
+	
+	  function CanvasSnake() {
+	    _classCallCheck(this, CanvasSnake);
+	
+	    return _possibleConstructorReturn(this, Object.getPrototypeOf(CanvasSnake).apply(this, arguments));
+	  }
+	
+	  _createClass(CanvasSnake, [{
+	    key: 'render',
+	    value: function render() {
+	      var _props$snake = this.props.snake;
+	      var startPos = _props$snake.startPos;
+	      var endPos = _props$snake.endPos;
+	
+	      var _getPlayerCoordinates = (0, _utils.getPlayerCoordinates)(startPos);
+	
+	      var startX = _getPlayerCoordinates.x;
+	      var startY = _getPlayerCoordinates.y;
+	
+	      var _getPlayerCoordinates2 = (0, _utils.getPlayerCoordinates)(endPos);
+	
+	      var endX = _getPlayerCoordinates2.x;
+	      var endY = _getPlayerCoordinates2.y;
+	
+	
+	      return _react2.default.createElement(
+	        _reactKonva.Layer,
+	        null,
+	        _react2.default.createElement(_reactKonva.Line, {
+	          points: [startX, startY, endX, endY],
+	          stroke: '#ffa09c',
+	          lineCap: 'round',
+	          strokeWidth: 4,
+	          dash: [1, 5]
+	        })
+	      );
+	    }
+	  }]);
+	
+	  return CanvasSnake;
+	}(_react2.default.Component);
+	
+	exports.default = CanvasSnake;
+
+/***/ },
+/* 225 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(2);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _reactKonva = __webpack_require__(204);
+	
+	var _utils = __webpack_require__(201);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var CanvasLadder = function (_React$Component) {
+	  _inherits(CanvasLadder, _React$Component);
+	
+	  function CanvasLadder() {
+	    _classCallCheck(this, CanvasLadder);
+	
+	    return _possibleConstructorReturn(this, Object.getPrototypeOf(CanvasLadder).apply(this, arguments));
+	  }
+	
+	  _createClass(CanvasLadder, [{
+	    key: 'render',
+	    value: function render() {
+	      var _props$ladder = this.props.ladder;
+	      var startPos = _props$ladder.startPos;
+	      var endPos = _props$ladder.endPos;
+	
+	      var _getPlayerCoordinates = (0, _utils.getPlayerCoordinates)(startPos);
+	
+	      var startX = _getPlayerCoordinates.x;
+	      var startY = _getPlayerCoordinates.y;
+	
+	      var _getPlayerCoordinates2 = (0, _utils.getPlayerCoordinates)(endPos);
+	
+	      var endX = _getPlayerCoordinates2.x;
+	      var endY = _getPlayerCoordinates2.y;
+	
+	
+	      return _react2.default.createElement(
+	        _reactKonva.Layer,
+	        null,
+	        _react2.default.createElement(_reactKonva.Line, {
+	          points: [startX, startY, endX, endY],
+	          stroke: '#96ceb4',
+	          lineCap: 'round',
+	          strokeWidth: 2,
+	          dash: [20, 5]
+	        }),
+	        _react2.default.createElement(_reactKonva.Line, {
+	          points: [startX - 5, startY, endX - 5, endY],
+	          stroke: '#96ceb4',
+	          lineCap: 'round',
+	          strokeWidth: 2,
+	          dash: [20, 5]
+	        })
+	      );
+	    }
+	  }]);
+	
+	  return CanvasLadder;
+	}(_react2.default.Component);
+	
+	exports.default = CanvasLadder;
+
+/***/ },
+/* 226 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';

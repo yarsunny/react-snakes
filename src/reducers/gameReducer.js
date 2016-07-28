@@ -5,21 +5,30 @@ import {
   GRID_HEIGHT
 } from '../config/variables';
 import {
-  getRandomColor
+  getRandomColor,
+  getLayout
 } from '../config/utils';
 import {
   ADD_NEW_PLAYER,
   MOVE_PLAYER,
   CHANGE_PLAYER,
-  CHANGE_PLAYER_POSITION_IN_BOX
+  CHANGE_PLAYER_POSITION_IN_BOX,
+  RECORD_DICE_LOG,
+  LOG_MESSAGE,
+  SET_PLAYER_PERSISTENCE,
+  ENABLE_DICE
 } from '../actions/GameActions';
 
+const firstPlayerColor = getRandomColor();
 const initialState = {
   dice: {
     disabled: false
   },
+  messages: [
+    'Welcome to the game'
+  ],
   grid: {
-    layout: _constructGrid(),
+    layout: getLayout(),
     width: GRID_WIDTH,
     height: GRID_HEIGHT,
     occupancy: _initializeOccupancy(),
@@ -28,12 +37,77 @@ const initialState = {
       width: BOX_WIDTH
     }
   },
+  snakes: [
+    {
+      id: 1,
+      startPos: 17,
+      endPos: 7
+    },
+    {
+      id: 2,
+      startPos: 52,
+      endPos: 29
+    },
+    {
+      id: 3,
+      startPos: 57,
+      endPos: 38
+    },
+    {
+      id: 4,
+      startPos: 88,
+      endPos: 18
+    },
+    {
+      id: 5,
+      startPos: 93,
+      endPos: 70
+    },
+    {
+      id: 6,
+      startPos: 97,
+      endPos: 79
+    }
+  ],
+  ladders: [
+    {
+      id: 1,
+      startPos: 3,
+      endPos: 21
+    },
+    {
+      id: 2,
+      startPos: 8,
+      endPos: 30
+    },
+    {
+      id: 3,
+      startPos: 28,
+      endPos: 84
+    },
+    {
+      id: 4,
+      startPos: 58,
+      endPos: 77
+    },
+    {
+      id: 5,
+      startPos: 80,
+      endPos: 99
+    },
+    {
+      id: 6,
+      startPos: 90,
+      endPos: 91
+    }
+  ],
   players: {
     count: 1,
+    persistence: 1,
     current: {
       id: 1,
       pos: 1,
-      color: '#675652',
+      color: firstPlayerColor,
       path: [1],
       diceLog: [],
       boxPosition: -1 //center
@@ -42,7 +116,7 @@ const initialState = {
       {
         id: 1,
         pos: 1,
-        color: '#675652',
+        color: firstPlayerColor,
         path: [1],
         diceLog: [],
         boxPosition: -1 //center
@@ -74,9 +148,8 @@ export function game (state = initialState, action) {
       };
 
     case MOVE_PLAYER:
-      const newPos = state.players.current.pos + action.diceResult;
       let newOccupancy = {};
-      newOccupancy[newPos] = state.grid.occupancy[newPos];
+      newOccupancy[action.newPos] = state.grid.occupancy[action.newPos] + 1;
       newOccupancy[state.players.current.pos] = state.grid.occupancy[state.players.current.pos] - 1;
 
       return {
@@ -96,17 +169,17 @@ export function game (state = initialState, action) {
           ...state.players,
           all: state.players.all.map((p) => {
             if (p.id === state.players.current.id) {
-              p.pos = newPos;
+              p.pos = action.newPos;
               p.boxPosition = -1;
+              p.path = [...p.path, action.newPos]
             }
             return p;
           }),
           current: {
             ...state.players.current,
-            pos: newPos,
+            pos: action.newPos,
             boxPosition: -1,
-            path: [...state.players.current.path, newPos],
-            diceLog: [...state.players.current.diceLog, action.diceResult]
+            path: [...state.players.current.path, action.newPos]
           }
         }
       };
@@ -122,7 +195,25 @@ export function game (state = initialState, action) {
           ...state.players,
           current: nextPlayer
         }
-      }
+      };
+
+    case RECORD_DICE_LOG:
+      return {
+        ...state,
+        players: {
+          ...state.players,
+          all: state.players.all.map((p) => {
+            if (p.id === state.players.current.id) {
+              p.diceLog = [...p.diceLog, action.diceResult]
+            }
+            return p;
+          }),
+          current: {
+            ...state.players.current,
+            diceLog: [...state.players.current.diceLog, action.diceResult]
+          }
+        }
+      };
 
     case CHANGE_PLAYER_POSITION_IN_BOX:
       let curPlayer = state.players.current.id === action.playerId
@@ -141,6 +232,30 @@ export function game (state = initialState, action) {
           }),
           current: curPlayer
         }
+      };
+
+    case LOG_MESSAGE:
+      return {
+        ...state,
+        messages: [...state.messages, action.message]
+      };
+
+    case SET_PLAYER_PERSISTENCE:
+      return {
+        ...state,
+        players: {
+          ...state.players,
+          persistence: action.persistence
+        }
+      };
+
+    case ENABLE_DICE:
+      return {
+        ...state,
+        dice: {
+          ...state.dice,
+          disabled: false
+        }
       }
 
     default:
@@ -151,32 +266,6 @@ export function game (state = initialState, action) {
 /*
  * Private functions
  */
-function _constructGrid () {
-  let grid = {};
-  const oddRows = [1, 3, 5, 7, 9],
-        evenRows = [0, 2, 4, 6, 8];
-
-  for (let col = 1;  col <= 10 ; col++) {
-    //even rows
-    evenRows.map((row) => {
-      grid[col + 10 * row] = {
-        x: (col-1) * BOX_WIDTH + BOX_WIDTH / 2,
-        y: GRID_HEIGHT - (row * BOX_HEIGHT + BOX_HEIGHT / 2),
-        id: col + 10 * row
-      }
-    });
-
-    //odd rows
-    oddRows.map((row) => {
-      grid[col + 10 * row] = {
-        x: GRID_WIDTH - ((col - 1)  * BOX_WIDTH + BOX_WIDTH / 2),
-        y: GRID_HEIGHT - (row * BOX_HEIGHT + BOX_HEIGHT / 2),
-        id: col + 10 * row
-      }
-    });
-  }
-  return grid;
-}
 
 function _generateNewPlayer (curCount) {
   return {
