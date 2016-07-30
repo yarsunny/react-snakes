@@ -35,7 +35,7 @@ export function changePlayer () {
     (dispatch) => {
       setTimeout(() => {
         dispatch({type: CHANGE_PLAYER});
-      }, 800);
+      }, 100);
     }
   )
 }

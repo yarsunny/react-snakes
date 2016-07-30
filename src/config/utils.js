@@ -77,7 +77,7 @@ export function getPlayerCoordinates (pos, boxPosition) {
 }
 
 export function delay (callback) {
-  return setTimeout(callback, 400);
+  return setTimeout(callback, 300);
 }
 
 export function getSnakes () {
