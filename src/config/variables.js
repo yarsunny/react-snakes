@@ -1,5 +1,7 @@
-export const GRID_WIDTH = 600;
-export const GRID_HEIGHT = 600;
+const gridMeasurement = window.innerHeight - 64;
+const DATA_WIDTH = window.innerWidth;
+export const GRID_WIDTH = gridMeasurement;
+export const GRID_HEIGHT = gridMeasurement;
 export const BOX_WIDTH = GRID_WIDTH / 10;
 export const BOX_HEIGHT = GRID_HEIGHT / 10;
 export const GAME_ON = 1;

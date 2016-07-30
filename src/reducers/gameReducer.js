@@ -21,7 +21,9 @@ import {
   ENABLE_DICE,
   END_GAME,
   ADD_SNAKE_BITE,
-  ADD_LADDER_HIKE
+  ADD_LADDER_HIKE,
+  RESTART_GAME
+
 } from '../actions/GameActions';
 
 const firstPlayerColor = getRandomColor();
@@ -31,7 +33,7 @@ const initialState = {
     disabled: false
   },
   messages: [
-    'Welcome to the game'
+    'Start rolling'
   ],
   grid: {
     layout: getLayout(),
@@ -179,9 +181,12 @@ export function game (state = initialState, action) {
           ...state.players,
           all: state.players.all.map((p) => {
             if (p.id === state.players.current.id) {
-              p.pos = action.newPos;
-              p.boxPosition = -1;
-              p.path = [...p.path, action.newPos]
+              return {
+                ...p,
+                pos: action.newPos,
+                boxPosition: -1,
+                path: [...p.path, action.newPos]
+              }
             }
             return p;
           }),
@@ -214,7 +219,10 @@ export function game (state = initialState, action) {
           ...state.players,
           all: state.players.all.map((p) => {
             if (p.id === state.players.current.id) {
-              p.diceLog = [...p.diceLog, action.diceResult]
+              return {
+                ...p,
+                diceLog: [...p.diceLog, action.diceResult]
+              }
             }
             return p;
           }),
@@ -236,7 +244,10 @@ export function game (state = initialState, action) {
           ...state.players,
           all: state.players.all.map((p) => {
             if (p.id === action.playerId) {
-              p.boxPosition = action.newBoxPosition;
+              return {
+                ...p,
+                boxPosition: action.newBoxPosition
+              }
             }
             return p;
           }),
@@ -282,7 +293,10 @@ export function game (state = initialState, action) {
           ...state.players,
           all: state.players.all.map((p) => {
             if (p.id === state.players.current.id) {
-              p.snakeBites = newSnakeBites;
+              return {
+                ...p,
+                snakeBites: newSnakeBites
+              }
             }
             return p;
           }),
@@ -301,7 +315,10 @@ export function game (state = initialState, action) {
           ...state.players,
           all: state.players.all.map((p) => {
             if (p.id === state.players.current.id) {
-              p.ladderHikes = newLadderHikes;
+              return {
+                ...p,
+                ladderHikes: newLadderHikes
+              }
             }
             return p;
           }),
@@ -311,6 +328,10 @@ export function game (state = initialState, action) {
           }
         }
       };
+
+    case RESTART_GAME:
+      debugger;
+      return initialState;
 
     default:
       return state;

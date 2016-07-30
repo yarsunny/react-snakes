@@ -75,3 +75,7 @@ export function getPlayerCoordinates (pos, boxPosition) {
       };
   }
 }
+
+export function delay(callback) {
+  return setTimeout(callback, 400);
+}

@@ -10,6 +10,7 @@ export const END_GAME = 'END_GAME';
 export const ADD_SNAKE_BITE = 'ADD_SNAKE_BITE';
 export const ADD_LADDER_HIKE = 'ADD_LADDER_HIKE';
 export const SHAKE_PLAYERS = 'SHAKE_PLAYERS';
+export const RESTART_GAME = 'RESTART_GAME';
 
 export function addNewPlayer () {
   return {
@@ -34,7 +35,7 @@ export function changePlayer () {
     (dispatch) => {
       setTimeout(() => {
         dispatch({type: CHANGE_PLAYER});
-      }, 1000);
+      }, 800);
     }
   )
 }
@@ -91,5 +92,11 @@ export function addLadderHike (playerId) {
   return {
     type: ADD_LADDER_HIKE,
     playerId
+  }
+}
+
+export function restartGame () {
+  return {
+    type: RESTART_GAME
   }
 }

@@ -1,10 +1,8 @@
 import React from 'react';
 import { Motion, spring } from 'react-motion';
-import {
-  Circle,
-  Layer
-} from 'react-konva';
+import { Circle, Layer, Group, Text } from 'react-konva';
 import { getPlayerCoordinates } from '../config/utils';
+import { styles } from '../styles';
 
 export default class CanvasPlayer extends React.Component {
 
@@ -18,14 +16,20 @@ export default class CanvasPlayer extends React.Component {
         <Motion style={{x: spring(x), y: spring(y)}}>
           {
             ({x, y}) => (
-              <Circle
-                x={x}
-                y={y}
-                radius={10}
-                fill={color}
-                stroke={isCurrent ? '#666666': '#ffffff'}
-                strokeWidth={isCurrent ? 2 : 0}
-                />
+              <Group>
+                <Circle
+                  x={x}
+                  y={y}
+                  radius={12}
+                  fill={isCurrent ? styles.white :color }
+                  stroke={color}
+                  strokeWidth={2}
+                  />
+                <Text
+                  x = {x-4} y = {y-7}
+                  fill = {isCurrent ? color : styles.white} text = {id}
+                  fontSize = {15} fontFamily = {'arial'} />
+              </Group>
             )
           }
         </Motion>

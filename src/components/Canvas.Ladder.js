@@ -1,6 +1,7 @@
 import React from 'react';
 import { Layer, Line } from 'react-konva';
 import { getPlayerCoordinates } from '../config/utils';
+import { styles } from '../styles';
 
 export default class CanvasLadder extends React.Component {
   render () {
@@ -12,14 +13,14 @@ export default class CanvasLadder extends React.Component {
       <Layer>
         <Line
           points={[startX, startY, endX, endY]}
-          stroke={'#96ceb4'}
+          stroke={styles.gray}
           lineCap="round"
           strokeWidth={2}
           dash={[20, 5]}
           />
         <Line
-          points={[startX - 5, startY, endX - 5, endY]}
-          stroke={'#96ceb4'}
+          points={[startX - 6, startY, endX - 6, endY]}
+          stroke={styles.gray}
           lineCap="round"
           strokeWidth={2}
           dash={[20, 5]}

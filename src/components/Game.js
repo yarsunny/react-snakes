@@ -11,87 +11,19 @@ import {
   addNewPlayer, getRollDiceResult, movePlayer, changePlayer,
   changePlayerPositionInBox, recordDiceLog, logMessage,
   enableDice, setPlayerPersistence, endGame,
-  addSnakeBite, addLadderHike
+  addSnakeBite, addLadderHike, restartGame
 } from '../actions/GameActions';
 import { GAME_ON, MAX_PLAYERS } from '../config/variables';
-import { gameStyles } from '../styles/style.game';
+import { delay } from '../config/utils';
+import { styles } from '../styles';
 
 export default class Game extends React.Component {
 
   constructor (props) {
     super(props);
-  }
-
-  _rollDice () {
-    const { players: { current: { id, pos }, persistence } } = this.props.game;
-    const diceResult = getRollDiceResult();
-    const newPos = pos + diceResult;
-
-    this.props.recordDiceLog(diceResult);
-    if (newPos > 100) {
-      this.props.logMessage(`Hang in there Player ${id}`);
-      this.props.changePlayer();
-    } else if (newPos == 100) {
-      this.props.movePlayer(newPos);
-      this.props.endGame();
-    } else {
-      this.props.movePlayer(newPos);
-      this.props.logMessage(`Player ${id} moved to block ${newPos}`);
-
-      this._checkSnakeBiteorLadderJump(newPos);
-      this._resolveOccupancyOverload();
-
-      if (diceResult === 6 && persistence < 3) {
-        this.props.logMessage(`SIX SIX SIX ${persistence}`);
-        this.props.enableDice();
-        this.props.setPlayerPersistence(persistence + 1);
-      } else {
-        this.props.changePlayer();
-        this.props.setPlayerPersistence(1);
-      }
+    this.state = {
+      diceOutput: {__html: '&#x2684;'}
     }
-  }
-
-  _checkSnakeBiteorLadderJump (playerPos) {
-    const { snakes, ladders, players: { current: { id } } } = this.props.game;
-    const cops = snakes.map((s) => s.startPos);
-    const redbull = ladders.map((l) => l.startPos);
-
-    if (cops.indexOf(playerPos) !== -1) {
-      /* busted */
-      const snake = snakes.filter((s) => (s.startPos === playerPos))[0];
-      this.props.movePlayer(snake.endPos);
-      this.props.addSnakeBite();
-      this.props.logMessage(`Player ${id} got BUSTED, moved to block ${snake.endPos}`);
-    }
-
-    if (redbull.indexOf(playerPos) !== -1) {
-      /* got wings */
-      const ladder = ladders.filter((l) => (l.startPos === playerPos))[0];
-      this.props.movePlayer(ladder.endPos);
-      this.props.addLadderHike();
-      this.props.logMessage(`Player ${id} found a redbull, moved to block ${ladder.endPos}`);
-    }
-
-  }
-
-  _resolveOccupancyOverload () {
-    setTimeout(() => {
-      const { grid: { occupancy }, players: { all } } = this.props.game;
-      const boxesWithMoreThanOneOccupants = Object.keys(occupancy).filter((box) => occupancy[box]>1);
-      for (let box of boxesWithMoreThanOneOccupants) {
-        const playersWithinBox = all.filter((player) => player.pos == box);
-        let count = 0;
-        for (let player of playersWithinBox) {
-            this.props.changePlayerPositionInBox(player.id, count++);
-        }
-      }
-    }, 400)
-  }
-
-  _addNewPlayer () {
-    this.props.addNewPlayer();
-    this._resolveOccupancyOverload();
   }
 
   render () {
@@ -99,32 +31,21 @@ export default class Game extends React.Component {
       status,
       dice: { disabled: isDiceDisabled },
       grid: { width, height, layout }, grid,
-      players: { all, current, count: playerCount }, players,
+      players: { all, current: { color: currentPlayerColor }, current }, players,
       snakes, ladders, messages
     } = this.props.game;
 
     return (
-      <div style={gameStyles.main}>
+      <div style={styles.main}>
         {
           status === GAME_ON
           ?
           <div>
-            <div style={gameStyles.gameBlock}>
+            <div style={styles.gameBlock}>
               <Stage
                 width={width}
                 height={height}>
                 <CanvasGrid grid={grid} />
-                { /* players */
-                  all.map((p, index) => {
-                    return (
-                      <CanvasPlayer
-                        key={`canvasPlayer_${index}`}
-                        player={p}
-                        current={current}
-                        />
-                    )
-                  })
-                }
                 { /* snakes */
                   snakes.map((s, index) => {
                     return (
@@ -145,32 +66,128 @@ export default class Game extends React.Component {
                     )
                   })
                 }
+                { /* players */
+                  all.map((p, index) => {
+                    return (
+                      <CanvasPlayer
+                        key={`canvasPlayer_${index}`}
+                        player={p}
+                        current={current}
+                        />
+                    )
+                  })
+                }
               </Stage>
             </div>
-            <div style={gameStyles.dataBlock}>
-              <button disabled={isDiceDisabled} onClick={this._rollDice.bind(this)} style={gameStyles.cta}>Roll Dice</button>
-              <button onClick={() => {this.props.endGame()}} style={gameStyles.cta}>End Game</button>
-              {
-                playerCount < MAX_PLAYERS
-                ?
-                <button onClick={this._addNewPlayer.bind(this)}>Add New Player</button>
-                : null
-              }
-              <div>Current Player: {current.id}</div>
-              <Players players={players} />
-              <div style={gameStyles.commentry}>
-              {
-                messages.map((message, index) => <div key={`message_${index}`}>{message}</div>)
-              }
-              </div>
+            <div style={styles.dataBlock}>
+              <Players players={players} addNewPlayer={this._addNewPlayer.bind(this)}/>
+              <section className="commentry-section" style={styles.commentry}>
+                {messages[0]}
+              </section>
+              <section className="dice-section">
+                  <button disabled={isDiceDisabled}
+                    onClick={this._rollDice.bind(this)}
+                    style={{...styles.diceButton, opacity: isDiceDisabled ? 0.5 : 1}}>
+                    Roll Dice
+                    <span style={styles.dice} dangerouslySetInnerHTML={this.state.diceOutput} />
+                  </button>
+              </section>
+              <section className="actions-section">
+                <button onClick={() => {this.props.endGame()}} style={styles.endCta}>End</button>
+                <button onClick={() => {this.props.restartGame()}} style={styles.restartCta}>Restart</button>
+              </section>
+              <section className="sction-rules" style={styles.rules}>                
+                * Upto 4 Players can play at a time. <br />
+              </section>
             </div>
           </div>
           :
-          <Results players={all} />
-
+          <Results players={all} startNewGame={this.props.restartGame}/>
         }
       </div>
     );
+  }
+
+  _rollDice () {
+    const { players: { current: { id, pos }, persistence } } = this.props.game;
+    const diceResult = getRollDiceResult();
+    this.setState({
+      diceOutput: {__html: `&#x268${diceResult - 1};`}
+    })
+    const newPos = pos + diceResult;
+
+    this.props.recordDiceLog(diceResult);
+
+    /**
+     * GAME LOGIC
+     **/
+    if (newPos > 100) {
+      this.props.logMessage(`Hang in there Player ${id}`);
+      this.props.changePlayer();
+    } else if (newPos == 100) {
+      this.props.movePlayer(newPos);
+      this.props.endGame();
+    } else {
+      this.props.movePlayer(newPos);
+      this.props.logMessage(`Player ${id}, moved from  block ${pos} to block ${newPos}`);
+
+      this._checkSnakeBiteorLadderJump(newPos);
+      this._resolveOccupancyOverload();
+
+      if (diceResult === 6 && persistence < 3) {
+        this.props.enableDice();
+        this.props.setPlayerPersistence(persistence + 1);
+      } else {
+        this.props.changePlayer();
+        this.props.setPlayerPersistence(1);
+      }
+    }
+  }
+
+  _checkSnakeBiteorLadderJump (playerPos) {
+    const { snakes, ladders, players: { current: { id } } } = this.props.game;
+    const snakeStartPosList = snakes.map((s) => s.startPos);
+    const ladderStartPosList = ladders.map((l) => l.startPos);
+
+    if (snakeStartPosList.indexOf(playerPos) !== -1) {
+      /* busted */
+      const snake = snakes.filter((s) => (s.startPos === playerPos))[0];
+      delay(() => {
+        this.props.movePlayer(snake.endPos);
+        this.props.addSnakeBite();
+        this.props.logMessage(`A snake ate Player ${id} at ${playerPos}, moved to block ${snake.endPos}`);
+      });
+    }
+
+    if (ladderStartPosList.indexOf(playerPos) !== -1) {
+      /* got wings */
+      const ladder = ladders.filter((l) => (l.startPos === playerPos))[0];
+      delay(()=> {
+        this.props.movePlayer(ladder.endPos);
+        this.props.addLadderHike();
+        this.props.logMessage(`Player ${id} found Ladder at ${playerPos}, moved to block ${ladder.endPos}`);
+      });
+    }
+
+  }
+
+  _resolveOccupancyOverload () {
+    setTimeout(() => {
+      const { grid: { occupancy }, players: { all } } = this.props.game;
+      const boxesWithMoreThanOneOccupants = Object.keys(occupancy).filter((box) => occupancy[box]>1);
+      for (let box of boxesWithMoreThanOneOccupants) {
+        const playersWithinBox = all.filter((player) => player.pos == box);
+        let count = 0;
+        for (let player of playersWithinBox) {
+            this.props.changePlayerPositionInBox(player.id, count++);
+        }
+      }
+    }, 400);
+  }
+
+  _addNewPlayer () {
+    this.props.addNewPlayer();
+    this._resolveOccupancyOverload();
   }
 }
 
@@ -192,5 +209,6 @@ export default connect(mapStateToProps, {
   setPlayerPersistence,
   endGame,
   addSnakeBite,
-  addLadderHike
+  addLadderHike,
+  restartGame
 })(Game);

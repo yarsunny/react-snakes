@@ -1,5 +1,6 @@
 import React from 'react';
-import SortableResultItem from './results/SortableResultItem'
+import SortableResultItem from './results/SortableResultItem';
+import { styles } from '../styles';
 
 export default class Results extends React.Component {
 
@@ -17,28 +18,36 @@ export default class Results extends React.Component {
 
   render () {
     return (
-      <div className="list">
-      {
-        this.state.data.map((playerStat, i) => {
-          const { id, pos, color, path, diceLog, snakeBites, ladderHikes } = playerStat;
-          return (
-            <SortableResultItem
-              key={i}
-              updateState={this.updateState.bind(this)}
-              items={this.state.data}
-              draggingIndex={this.state.draggingIndex}
-              sortId={i}
-              outline="list">              
-              <p>Player Id: {id}</p>
-              <p>Dice thrown: {diceLog.length}</p>
-              <p>Sixes rolled: {(diceLog.filter((dice) => dice === 6)).length}</p>
-              <p>Snake bites: {snakeBites}</p>
-              <p>Ladder hikes: {ladderHikes}</p>
-            </SortableResultItem>
-          )
-        })
-      }
-      </div>
+      <section className="results-section" style={styles.results}>
+        <h1 style={styles.heading}>Results</h1>
+        <div style={styles.inlineBlock} className="list">
+        {
+          this.state.data.map((playerStat, i) => {
+            const { id, pos, color, path, diceLog, snakeBites, ladderHikes } = playerStat;
+            return (
+              <SortableResultItem
+                key={i}
+                updateState={this.updateState.bind(this)}
+                items={this.state.data}
+                draggingIndex={this.state.draggingIndex}
+                sortId={i}
+                outline="list">
+                <div style={styles.resultCard}>
+                  <strong>Player {id} </strong>{pos===100 ? '( winner )' : ''}<br />
+                  {diceLog.length} dice thrown: <br />
+                  {(diceLog.filter((dice) => dice === 6)).length} sixes rolled<br />
+                  {snakeBites} snake bites <br />
+                  {ladderHikes} ladder hikes
+                </div>
+              </SortableResultItem>
+            )
+          })
+        }
+        </div>
+        <button style={styles.restartCta} onClick={() =>{this.props.startNewGame()}}>
+          Start new game
+        </button>
+      </section>
     )
   }
 }
