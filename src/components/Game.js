@@ -152,21 +152,17 @@ export default class Game extends React.Component {
     if (snakeStartPosList.indexOf(playerPos) !== -1) {
       /* busted */
       const snake = snakes.filter((s) => (s.startPos === playerPos))[0];
-      delay(() => {
-        this.props.movePlayer(snake.endPos);
-        this.props.addSnakeBite();
-        this.props.logMessage(`A snake ate Player ${id} at ${playerPos}, moved to block ${snake.endPos}`);
-      });
+      this.props.movePlayer(snake.endPos);
+      this.props.addSnakeBite();
+      this.props.logMessage(`A snake ate Player ${id} at ${playerPos}, moved to block ${snake.endPos}`);
     }
 
     if (ladderStartPosList.indexOf(playerPos) !== -1) {
       /* got wings */
       const ladder = ladders.filter((l) => (l.startPos === playerPos))[0];
-      delay(()=> {
-        this.props.movePlayer(ladder.endPos);
-        this.props.addLadderHike();
-        this.props.logMessage(`Player ${id} found Ladder at ${playerPos}, moved to block ${ladder.endPos}`);
-      });
+      this.props.movePlayer(ladder.endPos);
+      this.props.addLadderHike();
+      this.props.logMessage(`Player ${id} found Ladder at ${playerPos}, moved to block ${ladder.endPos}`);
     }
 
   }

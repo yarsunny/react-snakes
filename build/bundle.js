@@ -24156,8 +24156,6 @@
 	  }, {
 	    key: '_checkSnakeBiteorLadderJump',
 	    value: function _checkSnakeBiteorLadderJump(playerPos) {
-	      var _this3 = this;
-	
 	      var _props$game2 = this.props.game;
 	      var snakes = _props$game2.snakes;
 	      var ladders = _props$game2.ladders;
@@ -24171,40 +24169,32 @@
 	      });
 	
 	      if (snakeStartPosList.indexOf(playerPos) !== -1) {
-	        (function () {
-	          /* busted */
-	          var snake = snakes.filter(function (s) {
-	            return s.startPos === playerPos;
-	          })[0];
-	          (0, _utils.delay)(function () {
-	            _this3.props.movePlayer(snake.endPos);
-	            _this3.props.addSnakeBite();
-	            _this3.props.logMessage('A snake ate Player ' + id + ' at ' + playerPos + ', moved to block ' + snake.endPos);
-	          });
-	        })();
+	        /* busted */
+	        var snake = snakes.filter(function (s) {
+	          return s.startPos === playerPos;
+	        })[0];
+	        this.props.movePlayer(snake.endPos);
+	        this.props.addSnakeBite();
+	        this.props.logMessage('A snake ate Player ' + id + ' at ' + playerPos + ', moved to block ' + snake.endPos);
 	      }
 	
 	      if (ladderStartPosList.indexOf(playerPos) !== -1) {
-	        (function () {
-	          /* got wings */
-	          var ladder = ladders.filter(function (l) {
-	            return l.startPos === playerPos;
-	          })[0];
-	          (0, _utils.delay)(function () {
-	            _this3.props.movePlayer(ladder.endPos);
-	            _this3.props.addLadderHike();
-	            _this3.props.logMessage('Player ' + id + ' found Ladder at ' + playerPos + ', moved to block ' + ladder.endPos);
-	          });
-	        })();
+	        /* got wings */
+	        var ladder = ladders.filter(function (l) {
+	          return l.startPos === playerPos;
+	        })[0];
+	        this.props.movePlayer(ladder.endPos);
+	        this.props.addLadderHike();
+	        this.props.logMessage('Player ' + id + ' found Ladder at ' + playerPos + ', moved to block ' + ladder.endPos);
 	      }
 	    }
 	  }, {
 	    key: '_resolveOccupancyOverload',
 	    value: function _resolveOccupancyOverload() {
-	      var _this4 = this;
+	      var _this3 = this;
 	
 	      (0, _utils.delay)(function () {
-	        var _props$game3 = _this4.props.game;
+	        var _props$game3 = _this3.props.game;
 	        var occupancy = _props$game3.grid.occupancy;
 	        var all = _props$game3.players.all;
 	
@@ -24231,7 +24221,7 @@
 	              for (var _iterator2 = playersWithinBox[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
 	                var player = _step2.value;
 	
-	                _this4.props.changePlayerPositionInBox(player.id, count++);
+	                _this3.props.changePlayerPositionInBox(player.id, count++);
 	              }
 	            } catch (err) {
 	              _didIteratorError2 = true;
