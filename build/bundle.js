@@ -23636,8 +23636,7 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	var gridMeasurement = window.innerHeight - 64;
-	var DATA_WIDTH = window.innerWidth;
+	var gridMeasurement = window.innerHeight > window.innerWidth ? window.innerWidth - 64 : window.innerHeight - 64;
 	var GRID_WIDTH = exports.GRID_WIDTH = gridMeasurement;
 	var GRID_HEIGHT = exports.GRID_HEIGHT = gridMeasurement;
 	var BOX_WIDTH = exports.BOX_WIDTH = GRID_WIDTH / 10;
@@ -41084,20 +41083,17 @@
 
 /***/ },
 /* 213 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.styles = undefined;
 	
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 	
 	var _player;
-	
-	var _variables = __webpack_require__(204);
 	
 	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 	

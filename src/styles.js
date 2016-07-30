@@ -1,5 +1,3 @@
-import { DATA_WIDTH } from './config/variables';
-
 const cta = {
   padding: '6px 24px',
   borderRadius: 32,
