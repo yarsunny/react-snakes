@@ -96,7 +96,7 @@ export default class Game extends React.Component {
                 <button onClick={() => {this.props.endGame()}} style={styles.endCta}>End</button>
                 <button onClick={() => {this.props.restartGame()}} style={styles.restartCta}>Restart</button>
               </section>
-              <section className="sction-rules" style={styles.rules}>                
+              <section className="sction-rules" style={styles.rules}>
                 * Upto 4 Players can play at a time. <br />
               </section>
             </div>
@@ -129,7 +129,7 @@ export default class Game extends React.Component {
       this.props.endGame();
     } else {
       this.props.movePlayer(newPos);
-      this.props.logMessage(`Player ${id}, moved from  block ${pos} to block ${newPos}`);
+      this.props.logMessage(`Player ${id} moved from  block ${pos} to block ${newPos}. ${diceResult === 6 ? '** SIX **' : ''}`);
 
       this._checkSnakeBiteorLadderJump(newPos);
       this._resolveOccupancyOverload();

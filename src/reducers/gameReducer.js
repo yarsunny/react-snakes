@@ -8,7 +8,9 @@ import {
 } from '../config/variables';
 import {
   getRandomColor,
-  getLayout
+  getLayout,
+  getSnakes,
+  getLadders
 } from '../config/utils';
 import {
   ADD_NEW_PLAYER,
@@ -45,70 +47,8 @@ const initialState = {
       width: BOX_WIDTH
     }
   },
-  snakes: [
-    {
-      id: 1,
-      startPos: 17,
-      endPos: 7
-    },
-    {
-      id: 2,
-      startPos: 52,
-      endPos: 29
-    },
-    {
-      id: 3,
-      startPos: 57,
-      endPos: 38
-    },
-    {
-      id: 4,
-      startPos: 88,
-      endPos: 18
-    },
-    {
-      id: 5,
-      startPos: 93,
-      endPos: 70
-    },
-    {
-      id: 6,
-      startPos: 97,
-      endPos: 79
-    }
-  ],
-  ladders: [
-    {
-      id: 1,
-      startPos: 3,
-      endPos: 21
-    },
-    {
-      id: 2,
-      startPos: 8,
-      endPos: 30
-    },
-    {
-      id: 3,
-      startPos: 28,
-      endPos: 84
-    },
-    {
-      id: 4,
-      startPos: 58,
-      endPos: 77
-    },
-    {
-      id: 5,
-      startPos: 80,
-      endPos: 99
-    },
-    {
-      id: 6,
-      startPos: 90,
-      endPos: 91
-    }
-  ],
+  snakes: getSnakes(),
+  ladders: getLadders(),
   players: {
     count: 1,
     persistence: 1,
