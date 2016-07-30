@@ -43155,28 +43155,29 @@
 	                pos === 100 ? '( winner )' : '',
 	                _react2.default.createElement('br', null),
 	                diceLog.length,
-	                ' dice thrown: ',
-	                _react2.default.createElement('br', null),
+	                ' Dice thrown,  ',
 	                diceLog.filter(function (dice) {
 	                  return dice === 6;
 	                }).length,
-	                ' sixes rolled',
-	                _react2.default.createElement('br', null),
+	                ' Six(s) rolled,  ',
 	                snakeBites,
-	                ' snake bites ',
-	                _react2.default.createElement('br', null),
+	                ' Snake bites,  ',
 	                ladderHikes,
-	                ' ladder hikes'
+	                ' Ladder hikes'
 	              )
 	            );
 	          })
 	        ),
 	        _react2.default.createElement(
-	          'button',
-	          { style: _styles.styles.restartCta, onClick: function onClick() {
-	              _this2.props.startNewGame();
-	            } },
-	          'Start new game'
+	          'div',
+	          null,
+	          _react2.default.createElement(
+	            'button',
+	            { style: _styles.styles.restartCta, onClick: function onClick() {
+	                _this2.props.startNewGame();
+	              } },
+	            'Start new game'
+	          )
 	        )
 	      );
 	    }

@@ -34,19 +34,21 @@ export default class Results extends React.Component {
                 outline="list">
                 <div style={styles.resultCard}>
                   <strong>Player {id} </strong>{pos===100 ? '( winner )' : ''}<br />
-                  {diceLog.length} dice thrown: <br />
-                  {(diceLog.filter((dice) => dice === 6)).length} sixes rolled<br />
-                  {snakeBites} snake bites <br />
-                  {ladderHikes} ladder hikes
+                  {diceLog.length} Dice thrown, &nbsp;
+                  {(diceLog.filter((dice) => dice === 6)).length} Six(s) rolled, &nbsp;
+                  {snakeBites} Snake bites, &nbsp;
+                  {ladderHikes} Ladder hikes
                 </div>
               </SortableResultItem>
             )
           })
         }
         </div>
-        <button style={styles.restartCta} onClick={() =>{this.props.startNewGame()}}>
-          Start new game
-        </button>
+        <div>
+          <button style={styles.restartCta} onClick={() =>{this.props.startNewGame()}}>
+            Start new game
+          </button>
+        </div>
       </section>
     )
   }
