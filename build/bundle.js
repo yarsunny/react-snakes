@@ -23744,7 +23744,7 @@
 	}
 	
 	function delay(callback) {
-	  return setTimeout(callback, 400);
+	  return setTimeout(callback, 300);
 	}
 	
 	function getSnakes() {
@@ -23862,7 +23862,7 @@
 	  return function (dispatch) {
 	    setTimeout(function () {
 	      dispatch({ type: CHANGE_PLAYER });
-	    }, 800);
+	    }, 100);
 	  };
 	}
 	
