@@ -129,7 +129,7 @@ export default class Game extends React.Component {
       this.props.endGame();
     } else {
       this.props.movePlayer(newPos);
-      this.props.logMessage(`Player ${id} moved from  block ${pos} to block ${newPos}. ${diceResult === 6 ? '** SIX **' : ''}`);
+      this.props.logMessage(`Player ${id} moved from  block ${pos} to block ${newPos}. ${diceResult === 6 ? '**SIX**' : ''}`);
 
       this._checkSnakeBiteorLadderJump(newPos);
       this._resolveOccupancyOverload();
@@ -172,7 +172,7 @@ export default class Game extends React.Component {
   }
 
   _resolveOccupancyOverload () {
-    setTimeout(() => {
+    delay(() => {
       const { grid: { occupancy }, players: { all } } = this.props.game;
       const boxesWithMoreThanOneOccupants = Object.keys(occupancy).filter((box) => occupancy[box]>1);
       for (let box of boxesWithMoreThanOneOccupants) {
@@ -182,7 +182,7 @@ export default class Game extends React.Component {
             this.props.changePlayerPositionInBox(player.id, count++);
         }
       }
-    }, 400);
+    });
   }
 
   _addNewPlayer () {

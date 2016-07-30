@@ -35,7 +35,7 @@ export function changePlayer () {
     (dispatch) => {
       setTimeout(() => {
         dispatch({type: CHANGE_PLAYER});
-      }, 100);
+      }, 1000);
     }
   )
 }
@@ -81,17 +81,15 @@ export function endGame () {
   }
 }
 
-export function addSnakeBite (playerId) {
+export function addSnakeBite () {
   return {
-    type: ADD_SNAKE_BITE,
-    playerId
+    type: ADD_SNAKE_BITE
   }
 }
 
-export function addLadderHike (playerId) {
+export function addLadderHike () {
   return {
-    type: ADD_LADDER_HIKE,
-    playerId
+    type: ADD_LADDER_HIKE
   }
 }
 

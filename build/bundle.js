@@ -23862,7 +23862,7 @@
 	  return function (dispatch) {
 	    setTimeout(function () {
 	      dispatch({ type: CHANGE_PLAYER });
-	    }, 100);
+	    }, 1000);
 	  };
 	}
 	
@@ -23907,17 +23907,15 @@
 	  };
 	}
 	
-	function addSnakeBite(playerId) {
+	function addSnakeBite() {
 	  return {
-	    type: ADD_SNAKE_BITE,
-	    playerId: playerId
+	    type: ADD_SNAKE_BITE
 	  };
 	}
 	
-	function addLadderHike(playerId) {
+	function addLadderHike() {
 	  return {
-	    type: ADD_LADDER_HIKE,
-	    playerId: playerId
+	    type: ADD_LADDER_HIKE
 	  };
 	}
 	
@@ -24142,7 +24140,7 @@
 	        this.props.endGame();
 	      } else {
 	        this.props.movePlayer(newPos);
-	        this.props.logMessage('Player ' + id + ' moved from  block ' + pos + ' to block ' + newPos + '. ' + (diceResult === 6 ? '** SIX **' : ''));
+	        this.props.logMessage('Player ' + id + ' moved from  block ' + pos + ' to block ' + newPos + '. ' + (diceResult === 6 ? '**SIX**' : ''));
 	
 	        this._checkSnakeBiteorLadderJump(newPos);
 	        this._resolveOccupancyOverload();
@@ -24206,7 +24204,7 @@
 	    value: function _resolveOccupancyOverload() {
 	      var _this4 = this;
 	
-	      setTimeout(function () {
+	      (0, _utils.delay)(function () {
 	        var _props$game3 = _this4.props.game;
 	        var occupancy = _props$game3.grid.occupancy;
 	        var all = _props$game3.players.all;
@@ -24269,7 +24267,7 @@
 	            }
 	          }
 	        }
-	      }, 400);
+	      });
 	    }
 	  }, {
 	    key: '_addNewPlayer',
