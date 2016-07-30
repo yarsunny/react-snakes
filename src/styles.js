@@ -119,7 +119,8 @@ export const styles = {
     display: 'inline-block',
     background: '#fff',
     color: '#222',
-    fontSize: 16
+    fontSize: 16,
+    cursor: 'move'
   },
   rules: {
     marginTop: 16,
