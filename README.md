@@ -4,7 +4,7 @@
 
 To run it locally <br/>
 * Clone the Repo
-* go to the react-snakes folder
+* go to react-snakes folder
 * ```npm install```
 * ```npm start```
 * open http://localhost:8080/ in your browser
