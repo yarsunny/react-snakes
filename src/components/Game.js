@@ -11,11 +11,12 @@ import {
   addNewPlayer, getRollDiceResult, movePlayer, changePlayer,
   changePlayerPositionInBox, recordDiceLog, logMessage,
   enableDice, setPlayerPersistence, endGame,
-  addSnakeBite, addLadderHike, restartGame
+  addSnakeBite, addLadderHike, restartGame, redraw
 } from '../actions/GameActions';
 import { GAME_ON, MAX_PLAYERS } from '../config/variables';
 import { delay } from '../config/utils';
 import { styles } from '../styles';
+import _ from 'lodash';
 
 export default class Game extends React.Component {
 
@@ -24,6 +25,18 @@ export default class Game extends React.Component {
     this.state = {
       diceOutput: {__html: '&#x2684;'}
     }
+  }
+
+  handleResize (e) {
+    this.props.redraw(e.target.outerWidth, e.target.outerHeight);
+  }
+
+  componentDidMount () {
+    window.addEventListener('resize', _.debounce(this.handleResize.bind(this), 500));
+  }
+
+  componentWillUnmount () {
+    window.removeEventListener('resize', this.handleResize);
   }
 
   render () {
@@ -52,6 +65,7 @@ export default class Game extends React.Component {
                       <CanvasSnake
                         key={`canvasSnake_${index}`}
                         snake={s}
+                        grid={grid}
                         />
                     )
                   })
@@ -62,6 +76,7 @@ export default class Game extends React.Component {
                       <CanvasLadder
                         key={`canvasLadder_${index}`}
                         ladder={l}
+                        grid={grid}
                         />
                     )
                   })
@@ -73,6 +88,7 @@ export default class Game extends React.Component {
                         key={`canvasPlayer_${index}`}
                         player={p}
                         current={current}
+                        grid={grid}
                         />
                     )
                   })
@@ -206,5 +222,6 @@ export default connect(mapStateToProps, {
   endGame,
   addSnakeBite,
   addLadderHike,
-  restartGame
+  restartGame,
+  redraw
 })(Game);

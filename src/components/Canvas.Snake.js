@@ -5,9 +5,9 @@ import { styles } from '../styles';
 
 export default class CanvasSnake extends React.Component {
   render () {
-    const { snake: { startPos, endPos } } = this.props;
-    const { x: startX, y: startY } = getPlayerCoordinates(startPos);
-    const { x: endX, y: endY } = getPlayerCoordinates(endPos);
+    const { snake: { startPos, endPos }, grid } = this.props;
+    const { x: startX, y: startY } = getPlayerCoordinates(startPos, grid);
+    const { x: endX, y: endY } = getPlayerCoordinates(endPos, grid);
 
     return (
       <Layer>

@@ -11,6 +11,7 @@ export const ADD_SNAKE_BITE = 'ADD_SNAKE_BITE';
 export const ADD_LADDER_HIKE = 'ADD_LADDER_HIKE';
 export const SHAKE_PLAYERS = 'SHAKE_PLAYERS';
 export const RESTART_GAME = 'RESTART_GAME';
+export const REDRAW= 'REDRAW';
 
 export function addNewPlayer () {
   return {
@@ -96,5 +97,13 @@ export function addLadderHike () {
 export function restartGame () {
   return {
     type: RESTART_GAME
+  }
+}
+
+export function redraw (width, height) {
+  return {
+    type: REDRAW,
+    width,
+    height
   }
 }

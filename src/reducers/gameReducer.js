@@ -24,8 +24,8 @@ import {
   END_GAME,
   ADD_SNAKE_BITE,
   ADD_LADDER_HIKE,
-  RESTART_GAME
-
+  RESTART_GAME,
+  REDRAW
 } from '../actions/GameActions';
 
 const firstPlayerColor = getRandomColor();
@@ -38,7 +38,7 @@ const initialState = {
     'Start rolling'
   ],
   grid: {
-    layout: getLayout(),
+    layout: getLayout(GRID_WIDTH, GRID_HEIGHT),
     width: GRID_WIDTH,
     height: GRID_HEIGHT,
     occupancy: _initializeOccupancy(),
@@ -270,8 +270,29 @@ export function game (state = initialState, action) {
       };
 
     case RESTART_GAME:
-      debugger;
       return initialState;
+
+    case REDRAW:
+      let newGrid = {};
+      let newWidth = action.width - 32;
+      let newHeight = action.height - 32;
+      newWidth = newWidth > 672 ? newWidth / 2 : newWidth;
+      newGrid = {
+        layout: getLayout(newWidth, newWidth),
+        width: newWidth,
+        height: newWidth,
+        box: {
+          height: newWidth / 10,
+          width: newWidth / 10
+        }
+      }
+      return {
+        ...state,
+        grid: {
+          ...state.grid,
+          ...newGrid
+        }
+      }
 
     default:
       return state;

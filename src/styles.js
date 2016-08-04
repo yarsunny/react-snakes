@@ -18,20 +18,20 @@ export const styles = {
   red: '#ff0000',
   main: {
     margin: 0,
-    padding: 0,
     fontSize: 14,
     color: '#2c475d',
     fontFamily: 'sans-serif'
   },
   gameBlock: {
     display: 'inline-block',
-    verticalAlign: 'top'
+    verticalAlign: 'top',
+    padding: 16
   },
   dataBlock: {
-    width: window.innerWidth - window.innerHeight - 64,
     display: 'inline-block',
     verticalAlign: 'top',
-    marginLeft: 32
+    padding: 16,
+    minWidth: 320
   },
   cta: cta,
   player: {

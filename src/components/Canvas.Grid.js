@@ -6,7 +6,7 @@ import { GRID_WIDTH, GRID_HEIGHT } from '../config/variables';
 export default class CanvasGrid extends React.Component {
 
   render () {
-    const { layout, box: { width: boxWidth, height: boxHeight } } = this.props.grid;
+    const { layout, box: { width: boxWidth, height: boxHeight }, width, height } = this.props.grid;
 
     return (
       <Layer>
@@ -15,7 +15,7 @@ export default class CanvasGrid extends React.Component {
             const isEven = box % 2 === 0;
             return (
               <Group key = {`box_${box}`}>
-                <Rect x={0} y={0} width={GRID_WIDTH} height={GRID_HEIGHT} stroke={styles.darkBlue} strokeWidth={4} />
+                <Rect x={0} y={0} width={width} height={height} stroke={styles.darkBlue} strokeWidth={4} />
                 <Rect
                   x = {layout[box].x - (boxWidth / 2)} y = {layout[box].y - (boxHeight / 2)}
                   width = {boxWidth} height = {boxHeight}

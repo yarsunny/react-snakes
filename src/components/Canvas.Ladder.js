@@ -5,9 +5,9 @@ import { styles } from '../styles';
 
 export default class CanvasLadder extends React.Component {
   render () {
-    const { ladder: { startPos, endPos } } = this.props;
-    const { x: startX, y: startY } = getPlayerCoordinates(startPos);
-    const { x: endX, y: endY } = getPlayerCoordinates(endPos);
+    const { ladder: { startPos, endPos }, grid } = this.props;
+    const { x: startX, y: startY } = getPlayerCoordinates(startPos, grid);
+    const { x: endX, y: endY } = getPlayerCoordinates(endPos, grid);
 
     return (
       <Layer>
